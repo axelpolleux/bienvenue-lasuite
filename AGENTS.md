@@ -4,6 +4,41 @@ Goal: Is neseary to majke de code readable, easly to read, and maintaintable, so
 
 ## Code Quality Standards
 
+### Language
+
+- Every variable, function, class and module names must be in English
+- 
+
+### Function Design and Responsibility
+
+- Every function must have exactly one responsibility.
+- A function must do one clearly defined job and do it well.
+- If a function starts handling parsing, validation, transformation, and output formatting together, split it into helpers.
+- Prefer composition of small functions over nested, monolithic logic.
+- Keep functions short and readable. Target concise functions; extract helpers as soon as branching or nesting grows.
+
+### Mandatory Docstrings
+
+- Every function must include a docstring.
+- The docstring must explicitly describe:
+  - what the function does
+  - its inputs (name, type/shape, constraints)
+  - its output (type/shape and meaning)
+  - raised exceptions or failure modes (when relevant)
+- Docstrings must be written and updated together with code changes. No stale documentation.
+- Preserve ALL existing comments and docstrings unrelated to your changes.
+- Use the comment format: `// !` (alerts), `// ?` (queries), `// TODO:` (pending), `// *` (highlights).
+
+### Clean Code Rules
+
+- Use meaningful and unambiguous names for variables, functions, classes, and modules.
+- Eliminate magic numbers by defining named constants with clear intent.
+- Remove dead code immediately (unused variables, unreachable branches, commented-out legacy blocks).
+- Prefer explicitness over cleverness; optimize for maintainability.
+- Keep side effects isolated and obvious (I/O, network, filesystem, DB writes).
+- Avoid deep nesting. Use guard clauses and helper extraction.
+- Do not duplicate logic. Reuse shared helpers for repeated behavior.
+
 ### Size Limits
 
 - **Functions**: Maximum **25 lines** of logic. Split larger functions into smaller, well-named helpers.
@@ -14,18 +49,14 @@ Goal: Is neseary to majke de code readable, easly to read, and maintaintable, so
 - NEVER leave `catch` blocks empty. Always log or rethrow.
 - Handle all async errors (unhandled promise rejections, missing try/catch on await).
 - Validate all external inputs (user input, API responses, URL params).
+- Fail fast with clear, actionable error messages.
+- Define and respect clear contracts between modules (inputs, outputs, invariants).
 
 ### Security
 
 - Never hardcode secrets, API keys, or credentials in source code.
 - Always validate and sanitize user inputs before database operations.
 - Use parameterized queries never string concatenation for SQL/NoSQL.
-
-### Documentation
-
-- Add JSDoc/docstrings to all public functions and complex logic.
-- Preserve ALL existing comments and docstrings unrelated to your changes.
-- Use the comment format: `// !` (alerts), `// ?` (queries), `// TODO:` (pending), `// *` (highlights).
 
 ### funtions
 
@@ -50,6 +81,18 @@ Before signaling completion, you must execute and verify:
 1. Linters: Zero errors, zero warnings.
 2. Type checkers: Strict pass.
 3. Test suite: Existing tests pass; new regression/unit tests pass.
+
+### Testing Requirements (Mandatory)
+
+- Unit tests are required for all functions.
+- "Happy path only" tests are not sufficient.
+- For each function, tests must cover at least:
+  - expected behavior
+  - invalid input handling
+  - edge conditions
+  - deterministic output expectations
+- Tests must be readable, deterministic, and isolated.
+- Keep test names descriptive: they should state behavior and expected result.
 
 ### Pull Request Format
 
