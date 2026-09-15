@@ -2,12 +2,112 @@
 
 Goal: Is neseary to majke de code readable, easly to read, and maintaintable, so we only will include the most important information in the code. For the comunity of Open Source.
 
+## Naming conventions
+
+This repository uses different naming conventions depending on the layer, language, and file type.
+
+### Backend Python
+
+- Use `snake_case` for:
+  - functions
+  - methods
+  - variables
+  - properties
+  - model field names
+  - related names
+- Use `PascalCase` for:
+  - classes
+  - managers
+  - querysets
+  - exceptions
+- Use `UPPER_SNAKE_CASE` for:
+  - module-level constants
+  - Django settings-like constants
+  - environment variable names
+- Use a leading underscore for:
+  - private/internal attributes
+  - cached implementation details
+- Use standard Python dunder names for protocol methods:
+  - `__str__`
+  - `__init__`
+  - etc.
+- Prefer boolean names beginning with:
+  - `is_...`
+  - `has_...`
+  - `can_...`
+
+### Frontend TypeScript / React
+
+- Use `camelCase` for:
+  - variables
+  - functions
+  - helpers
+  - hooks-local values
+- Use `PascalCase` for:
+  - React components
+  - type aliases
+  - interfaces
+  - exported type-like constructs
+- Use a leading underscore for:
+  - throwaway / ignored values when needed
+- Prefer descriptive function names rather than abbreviated ones.
+
+### CSS / styling
+
+- Use namespaced, BEM-like class names:
+  - `c__button`
+  - `c__modal__backdrop`
+  - `c__button--medium`
+- Use hierarchical custom-property names for design tokens:
+  - `--c--components--...`
+  - `--c--globals--...`
+  - `--bn-...`
+  - `--mantine-...`
+- Keep class names and token names descriptive and structured by domain/component/state.
+
+### Makefile and shell
+
+- Use `UPPER_SNAKE_CASE` for Make variables and shell environment variables.
+- Use `kebab-case` for Make targets.
+- Prefer descriptive target names like:
+  - `run-backend`
+  - `frontend-i18n-compile`
+  - `generate-secret-keys`
+- Keep helper variables grouped in the VARIABLES section.
+- Keep rules grouped and alphabetically sorted where practical.
+
+### GitHub Actions
+
+- Use descriptive `kebab-case` job IDs and workflow steps.
+- Use `UPPER_SNAKE_CASE` for workflow environment variables.
+- Use clear reusable workflow input names, often in `kebab-case`.
+
+### Documentation and filenames
+
+- Prefer descriptive file names.
+- Use `kebab-case` for Markdown documentation files where appropriate.
+- Keep section and file names aligned with the feature or topic they describe.
+
+### Database / schema names
+
+- Use lowercase with underscores for:
+  - table names
+  - constraint names
+  - database identifiers
+- Keep related names consistent with model and relation names.
+
+### General guidance
+
+- Favor consistency with neighboring files over inventing new patterns.
+- Match the existing convention of the file you are editing.
+- Use names that make the role of the value obvious without extra context.
+- Avoid ambiguous abbreviations unless they are already established in the codebase.
+
 ## Code Quality Standards
 
 ### Language
 
 - Every variable, function, class and module names must be in English
-- 
 
 ### Function Design and Responsibility
 
