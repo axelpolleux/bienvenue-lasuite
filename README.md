@@ -2,8 +2,8 @@
 
 > **A modular onboarding widget/template ecosystem for [La Suite Numérique](https://lasuite.numerique.gouv.fr), powered by [Grist](https://www.getgrist.com).**
 
-[![Status: Concept](https://img.shields.io/badge/status-concept%20%2F%20hackathon-blue.svg)](#)
-[![Accessibility: RGAA / WCAG 2.1 AA](https://img.shields.io/badge/accessibility-RGAA%20%2F%20WCAG%20AA-blueviolet.svg)](#-accessibility--inclusivity-rgaa--a11y)
+![Status: Concept](https://img.shields.io/badge/status-concept%20%2F%20hackathon-blue.svg)
+![Accessibility: RGAA / WCAG 2.1 AA](https://img.shields.io/badge/accessibility-RGAA%20%2F%20WCAG%20AA-blueviolet.svg)
 [![Powered by: Grist](https://img.shields.io/badge/database-Grist-orange.svg)](https://www.getgrist.com/)
 [![License: GPL-2.0](https://img.shields.io/badge/license-GPL--2.0-green.svg)](./LICENSE)
 
