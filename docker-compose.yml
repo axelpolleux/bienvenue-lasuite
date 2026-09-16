@@ -38,6 +38,17 @@ services:
       timeout: 2s
       retries: 60
 
+  grist:
+    image: gristlabs/grist
+    environment:
+      APP_HOME_URL: http://localhost:8585
+      GRIST_DEFAULT_EMAIL: manager@bienvenue.local
+      GRIST_IN_SERVICE: "true"
+    volumes:
+      - grist_data:/persist
+    ports:
+      - "8585:8484"
+
   backend:
     build: ./backend
     command: >
@@ -67,3 +78,4 @@ services:
 
 volumes:
   postgresql_data:
+  grist_data:
