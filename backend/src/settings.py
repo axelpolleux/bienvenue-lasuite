@@ -173,7 +173,14 @@ OIDC_OP_JWKS_ENDPOINT = env(
     "OIDC_OP_JWKS_ENDPOINT",
     default="http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/certs",
 )
+OIDC_OP_LOGOUT_ENDPOINT = env(
+    "OIDC_OP_LOGOUT_ENDPOINT",
+    default="http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/logout",
+)
+OIDC_OP_LOGOUT_URL_METHOD = "src.oidc.provider_logout"
 
 LOGIN_URL = "oidc_authentication_init"
 LOGIN_REDIRECT_URL = "/whoami/"
 LOGIN_REDIRECT_URL_FAILURE = "/"
+LOGOUT_REDIRECT_URL = "/"
+ALLOW_LOGOUT_GET_METHOD = True

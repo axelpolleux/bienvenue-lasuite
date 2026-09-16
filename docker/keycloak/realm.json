@@ -45,6 +45,9 @@
         "http://localhost:8000",
         "http://localhost:3000"
       ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:8000/*##http://localhost:3000/*"
+      },
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": true,
