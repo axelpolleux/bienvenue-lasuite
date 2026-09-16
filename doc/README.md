@@ -15,5 +15,6 @@ Welcome to the comprehensive architecture and implementation documentation for *
 | **[04. External Integrations Guide](04-external-integrations.md)**    | Grist webhooks and REST API, Keycloak OIDC authentication, and La Suite: Fichiers verification.                                                                            |
 | **[05. Local Development & Testing Guide](05-local-development.md)**  | Docker Compose configuration, environment variables, local run commands, and test recipes.                                                                                 |
 | **[06. Global Plan Evaluation Report](06-plan-evaluation-report.md)** | Principal Architect scorecard, feasibility analysis, risk matrix, and 7-phase execution roadmap.                                                                           |
+| **[REST API Reference](api/README.md)**                              | Concise REST API endpoint reference, authentication methods, payload schemas, and local testing curl recipes.                             |
 
 ---
