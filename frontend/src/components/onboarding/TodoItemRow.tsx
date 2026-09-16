@@ -1,4 +1,5 @@
 import { VALIDATION_HINTS, VALIDATION_TAGS, formatCompletionTimestamp } from "../../lib/onboarding";
+import { ServiceIcon } from "./ServiceIcon";
 import type { TodoWithStatus } from "../../types";
 
 export interface TodoItemRowProps {
@@ -69,8 +70,15 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
             </a>
           )}
           {todo.docUrl && (
-            <a href={todo.docUrl} target="_blank" rel="noopener noreferrer" className="bn-button bn-button--link">
-              Documentation ↗
+            <a
+              href={todo.docUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bn-doc-link"
+              aria-label={`${todo.serviceName} documentation`}
+              title="Documentation"
+            >
+              <ServiceIcon name="Docs" />
             </a>
           )}
         </div>
@@ -87,8 +95,15 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
             </a>
           )}
           {todo.docUrl && (
-            <a href={todo.docUrl} target="_blank" rel="noopener noreferrer" className="bn-button bn-button--link">
-              Documentation ↗
+            <a
+              href={todo.docUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bn-doc-link"
+              aria-label={`${todo.serviceName} documentation`}
+              title="Documentation"
+            >
+              <ServiceIcon name="Docs" />
             </a>
           )}
         </div>

@@ -1,4 +1,5 @@
 import { ProgressBar } from "../components/onboarding/ProgressBar";
+import { ServiceIcon } from "../components/onboarding/ServiceIcon";
 import { VALIDATION_HINTS } from "../lib/onboarding";
 import type { UseOnboardingReturn } from "../hooks/useOnboarding";
 
@@ -6,11 +7,18 @@ export interface HomePageProps {
   onboarding: UseOnboardingReturn;
 }
 
-/** Landing screen: progress hero, quick-stat tiles, and the current step. */
+/** Landing screen: progress hero, quick-stat tiles, tool shortcuts, and the current step. */
 export function HomePage({ onboarding }: HomePageProps) {
-  const { agent, currentStep, doneCount, totalCount, colleagues, documents, signatureAccepted, goToScreen } = onboarding;
+  const { agent, currentStep, doneCount, totalCount, colleagues, documents, signatureAccepted, todos, goToScreen } = onboarding;
   const firstName = agent.name.split(" ")[0] ?? "";
   const percentage = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
+
+  const seenTools = new Set<string>();
+  const toolLinks = todos.filter((todo) => {
+    if (!todo.serviceName || !todo.serviceLink || seenTools.has(todo.serviceName)) return false;
+    seenTools.add(todo.serviceName);
+    return true;
+  });
 
   const tiles = [
     {
@@ -35,7 +43,9 @@ export function HomePage({ onboarding }: HomePageProps) {
         <div style={{ flex: 1, minWidth: 250, display: "flex", flexDirection: "column", gap: 9 }}>
           <h2 style={{ margin: 0, font: "700 29px/1.2 var(--bn-font)" }}>Welcome, {firstName}</h2>
           <p style={{ margin: 0, font: "400 15px/1.6 var(--bn-font)", color: "#e4e4ff", maxWidth: "46ch" }}>
-            Your onboarding runs step by step. Complete each one to unlock the next.
+            Your onboarding runs step by step.
+            <br />
+            Complete each one to unlock the next.
           </p>
         </div>
         <div style={{ flex: "none", width: 238, maxWidth: "100%", display: "flex", flexDirection: "column", gap: 9 }}>
@@ -59,6 +69,20 @@ export function HomePage({ onboarding }: HomePageProps) {
           </button>
         ))}
       </div>
+
+      <section className="bn-card" style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+        <h3 style={{ margin: 0, font: "700 16px/1.2 var(--bn-font)" }}>Your La Suite tools</h3>
+        <div className="bn-tool-grid">
+          {toolLinks.map((tool) => (
+            <a key={tool.serviceName} href={tool.serviceLink} target="_blank" rel="noopener noreferrer" className="bn-tool-link">
+              <span className="bn-tool-link__icon" aria-hidden="true">
+                <ServiceIcon name={tool.serviceName} />
+              </span>
+              <span className="bn-tool-link__label">{tool.serviceName}</span>
+            </a>
+          ))}
+        </div>
+      </section>
 
       <section className="bn-card" style={{ display: "flex", flexDirection: "column", gap: 15 }}>
         <h3 style={{ margin: 0, font: "700 16px/1.2 var(--bn-font)" }}>{currentStep ? "Your current step" : "Onboarding complete"}</h3>

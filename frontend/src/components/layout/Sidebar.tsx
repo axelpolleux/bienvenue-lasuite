@@ -1,4 +1,4 @@
-import logo from "../../assets/bienvenue-logo.png";
+import logo from "../../assets/bienvenue-logo.webp";
 import { buildNavItems } from "../../lib/navigation";
 import type { Agent, ScreenId } from "../../types";
 
