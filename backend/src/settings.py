@@ -24,6 +24,11 @@ environ.Env.read_env(BASE_DIR / ".env")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
+# "development" or "production" — use this instead of DEBUG to branch
+# behavior that isn't just about showing tracebacks (e.g. forcing
+# HTTPS, enabling Sentry, cookie security flags).
+DJANGO_ENVIRONMENT = env("DJANGO_ENVIRONMENT", default="development")
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env(
     "DJANGO_SECRET_KEY",
@@ -47,6 +52,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
+    "mozilla_django_oidc",
+]
+
+AUTHENTICATION_BACKENDS = [
+    "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]
 
 MIDDLEWARE = [
@@ -139,3 +150,43 @@ MAILERS = {
         "BACKEND": "django.core.mail.backends.console.EmailBackend",
     },
 }
+
+
+# OIDC (Keycloak, dedicated to this project — see docker/keycloak/realm.json)
+# https://mozilla-django-oidc.readthedocs.io/en/stable/settings.html
+
+OIDC_RP_CLIENT_ID = env("OIDC_RP_CLIENT_ID", default="bienvenue-lasuite")
+OIDC_RP_CLIENT_SECRET = env(
+    "OIDC_RP_CLIENT_SECRET", default="ThisIsAnExampleKeyForDevPurposeOnly"
+)
+OIDC_RP_SIGN_ALGO = "RS256"
+OIDC_RP_SCOPES = "openid email profile"
+
+OIDC_OP_AUTHORIZATION_ENDPOINT = env(
+    "OIDC_OP_AUTHORIZATION_ENDPOINT",
+    default="http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/auth",
+)
+OIDC_OP_TOKEN_ENDPOINT = env(
+    "OIDC_OP_TOKEN_ENDPOINT",
+    default="http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/token",
+)
+OIDC_OP_USER_ENDPOINT = env(
+    "OIDC_OP_USER_ENDPOINT",
+    default="http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/userinfo",
+)
+OIDC_OP_JWKS_ENDPOINT = env(
+    "OIDC_OP_JWKS_ENDPOINT",
+    default="http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/certs",
+)
+OIDC_OP_LOGOUT_ENDPOINT = env(
+    "OIDC_OP_LOGOUT_ENDPOINT",
+    default="http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/logout",
+)
+OIDC_OP_LOGOUT_URL_METHOD = "src.oidc.provider_logout"
+OIDC_STORE_ID_TOKEN = True
+
+LOGIN_URL = "oidc_authentication_init"
+LOGIN_REDIRECT_URL = "/whoami/"
+LOGIN_REDIRECT_URL_FAILURE = "/"
+LOGOUT_REDIRECT_URL = "/"
+ALLOW_LOGOUT_GET_METHOD = True
