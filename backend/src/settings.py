@@ -190,3 +190,13 @@ LOGIN_REDIRECT_URL = "/whoami/"
 LOGIN_REDIRECT_URL_FAILURE = "/"
 LOGOUT_REDIRECT_URL = "/"
 ALLOW_LOGOUT_GET_METHOD = True
+
+
+# Grist (self-hosted, dedicated to this project — see docker-compose.yml)
+# No local copy of template data: we pull from Grist on demand and cache
+# the result briefly (see integrations/grist.py).
+
+GRIST_BASE_URL = env("GRIST_BASE_URL", default="http://localhost:8585")
+GRIST_API_KEY = env("GRIST_API_KEY", default="")
+GRIST_DOC_ID = env("GRIST_DOC_ID", default="")
+GRIST_CACHE_TTL_SECONDS = env.int("GRIST_CACHE_TTL_SECONDS", default=120)
