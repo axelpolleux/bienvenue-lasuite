@@ -15,6 +15,29 @@ services:
       timeout: 2s
       retries: 30
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:20.0.1
+    command:
+      - start-dev
+      - --import-realm
+      - --hostname-url=http://localhost:8180
+      - --hostname-admin-url=http://localhost:8180/
+      - --hostname-strict=false
+      - --hostname-strict-https=false
+      - --health-enabled=true
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./docker/keycloak/realm.json:/opt/keycloak/data/import/realm.json
+    ports:
+      - "8180:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--head", "-fsS", "http://localhost:8080/health/ready"]
+      interval: 2s
+      timeout: 2s
+      retries: 60
+
   backend:
     build: ./backend
     command: >
@@ -29,8 +52,16 @@ services:
         required: false
     environment:
       DATABASE_URL: postgres://bienvenue:bienvenue@postgresql:5432/bienvenue
+      OIDC_RP_CLIENT_ID: bienvenue-lasuite
+      OIDC_RP_CLIENT_SECRET: ThisIsAnExampleKeyForDevPurposeOnly
+      OIDC_OP_AUTHORIZATION_ENDPOINT: http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/auth
+      OIDC_OP_TOKEN_ENDPOINT: http://keycloak:8080/realms/bienvenue-lasuite/protocol/openid-connect/token
+      OIDC_OP_USER_ENDPOINT: http://keycloak:8080/realms/bienvenue-lasuite/protocol/openid-connect/userinfo
+      OIDC_OP_JWKS_ENDPOINT: http://keycloak:8080/realms/bienvenue-lasuite/protocol/openid-connect/certs
     depends_on:
       postgresql:
+        condition: service_healthy
+      keycloak:
         condition: service_healthy
 
 volumes:

@@ -1,0 +1,58 @@
+{
+  "realm": "bienvenue-lasuite",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "users": [
+    {
+      "username": "manager",
+      "email": "manager@bienvenue.local",
+      "firstName": "Morgane",
+      "lastName": "Manager",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "manager", "temporary": false }
+      ]
+    },
+    {
+      "username": "agent",
+      "email": "agent@bienvenue.local",
+      "firstName": "Alex",
+      "lastName": "Agent",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        { "type": "password", "value": "agent", "temporary": false }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "bienvenue-lasuite",
+      "name": "Bienvenue",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "ThisIsAnExampleKeyForDevPurposeOnly",
+      "redirectUris": [
+        "http://localhost:8000/*",
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8000",
+        "http://localhost:3000"
+      ],
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true,
+      "defaultClientScopes": ["web-origins", "acr", "roles", "profile", "email"]
+    }
+  ]
+}

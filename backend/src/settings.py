@@ -47,6 +47,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
+    "mozilla_django_oidc",
+]
+
+AUTHENTICATION_BACKENDS = [
+    "mozilla_django_oidc.auth.OIDCAuthenticationBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]
 
 MIDDLEWARE = [
@@ -139,3 +145,35 @@ MAILERS = {
         "BACKEND": "django.core.mail.backends.console.EmailBackend",
     },
 }
+
+
+# OIDC (Keycloak, dedicated to this project — see docker/keycloak/realm.json)
+# https://mozilla-django-oidc.readthedocs.io/en/stable/settings.html
+
+OIDC_RP_CLIENT_ID = env("OIDC_RP_CLIENT_ID", default="bienvenue-lasuite")
+OIDC_RP_CLIENT_SECRET = env(
+    "OIDC_RP_CLIENT_SECRET", default="ThisIsAnExampleKeyForDevPurposeOnly"
+)
+OIDC_RP_SIGN_ALGO = "RS256"
+OIDC_RP_SCOPES = "openid email profile"
+
+OIDC_OP_AUTHORIZATION_ENDPOINT = env(
+    "OIDC_OP_AUTHORIZATION_ENDPOINT",
+    default="http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/auth",
+)
+OIDC_OP_TOKEN_ENDPOINT = env(
+    "OIDC_OP_TOKEN_ENDPOINT",
+    default="http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/token",
+)
+OIDC_OP_USER_ENDPOINT = env(
+    "OIDC_OP_USER_ENDPOINT",
+    default="http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/userinfo",
+)
+OIDC_OP_JWKS_ENDPOINT = env(
+    "OIDC_OP_JWKS_ENDPOINT",
+    default="http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/certs",
+)
+
+LOGIN_URL = "oidc_authentication_init"
+LOGIN_REDIRECT_URL = "/whoami/"
+LOGIN_REDIRECT_URL_FAILURE = "/"
