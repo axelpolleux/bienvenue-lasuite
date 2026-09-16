@@ -51,6 +51,7 @@ services:
       - path: ./backend/.env
         required: false
     environment:
+      DJANGO_ENVIRONMENT: development
       DATABASE_URL: postgres://bienvenue:bienvenue@postgresql:5432/bienvenue
       OIDC_RP_CLIENT_ID: bienvenue-lasuite
       OIDC_RP_CLIENT_SECRET: ThisIsAnExampleKeyForDevPurposeOnly

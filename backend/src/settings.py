@@ -24,6 +24,11 @@ environ.Env.read_env(BASE_DIR / ".env")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
+# "development" or "production" — use this instead of DEBUG to branch
+# behavior that isn't just about showing tracebacks (e.g. forcing
+# HTTPS, enabling Sentry, cookie security flags).
+DJANGO_ENVIRONMENT = env("DJANGO_ENVIRONMENT", default="development")
+
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env(
     "DJANGO_SECRET_KEY",
