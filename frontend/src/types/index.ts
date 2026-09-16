@@ -28,8 +28,12 @@ export interface TodoItem {
   id: string;
   order: number;
   label: string;
+  /** Short presentation of the tool, shown under the task title. */
+  description?: string;
   serviceLink: string;
   serviceName: string;
+  /** Link to the tool's documentation, shown next to the access link. */
+  docUrl?: string;
   validationType: ValidationType;
 }
 
@@ -72,7 +76,7 @@ export interface AgentProfile {
   phone: string;
 }
 
-export type ScreenId = "home" | "checklist" | "resources" | "signature" | "profile";
+export type ScreenId = "home" | "checklist" | "resources" | "contact" | "signature";
 
 export type AlertKind = "success" | "error" | "info";
 
@@ -82,4 +86,4 @@ export interface AlertState {
   body: string;
 }
 
-export type ResourceFilter = "All" | "People" | "Documents" | "Trainings";
+export type ResourceFilter = "All" | "Documents" | "Trainings";

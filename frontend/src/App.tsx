@@ -5,18 +5,18 @@ import { TabBar } from "./components/layout/TabBar";
 import { LoginScreen } from "./components/auth/LoginScreen";
 import { useOnboarding } from "./hooks/useOnboarding";
 import { ChecklistPage } from "./pages/ChecklistPage";
+import { ContactPage } from "./pages/ContactPage";
 import { HomePage } from "./pages/HomePage";
-import { ProfilePage } from "./pages/ProfilePage";
 import { ResourcesPage } from "./pages/ResourcesPage";
 import { SignaturePage } from "./pages/SignaturePage";
 import type { ScreenId } from "./types";
 
 const PAGE_COPY: Record<ScreenId, (doneCount: number, totalCount: number, signatureAccepted: boolean) => [string, string]> = {
-  home: () => ["Home", "Your onboarding at a glance"],
+  home: () => ["Home", ""],
   checklist: (doneCount, totalCount) => ["My checklist", `${doneCount} of ${totalCount} steps completed`],
-  resources: () => ["Resources", "Colleagues, documents and trainings"],
+  resources: () => ["Resources", "Documents and trainings"],
+  contact: () => ["Contact", "People to reach on Tchap"],
   signature: (_d, _t, signatureAccepted) => ["Email signature", signatureAccepted ? "Confirmed" : "Awaiting your confirmation"],
-  profile: () => ["My profile", "Identity and signature details"],
 };
 
 /**
@@ -67,8 +67,8 @@ export default function App() {
             {screen === "home" && <HomePage onboarding={onboarding} />}
             {screen === "checklist" && <ChecklistPage onboarding={onboarding} />}
             {screen === "resources" && <ResourcesPage onboarding={onboarding} />}
+            {screen === "contact" && <ContactPage onboarding={onboarding} />}
             {screen === "signature" && <SignaturePage onboarding={onboarding} />}
-            {screen === "profile" && <ProfilePage onboarding={onboarding} />}
           </div>
         </main>
 

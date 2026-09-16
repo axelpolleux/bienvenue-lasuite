@@ -51,8 +51,7 @@ export function SignatureBox({ agent, profile, accepted, locked, accepting, onAc
       </div>
 
       <p style={{ margin: 0, font: "400 14px/1.6 var(--bn-font)", color: "var(--bn-color-ink-muted)", maxWidth: "62ch" }}>
-        Generated from the template's signature block and your identity claims. Copy it into your mail client, then
-        confirm the setup to close the final checklist step.
+        Copy it into your mail client, then confirm the setup to close the final step.
       </p>
 
       <div className="bn-signature-preview">

@@ -81,9 +81,10 @@ export function useOnboarding() {
     setTimeout(() => {
       const meta = DEV_AGENTS[devEmail];
       const seededDone = { ...meta.seedDone };
-      const seededDoneAt: Record<string, string> = seededDone.t1
-        ? { t1: new Date(Date.now() - 3_600_000).toISOString() }
-        : {};
+      const seededAt = new Date(Date.now() - 3_600_000).toISOString();
+      const seededDoneAt: Record<string, string> = Object.fromEntries(
+        Object.keys(seededDone).map((todoId) => [todoId, seededAt]),
+      );
       setLoggingIn(false);
       setSession({
         email: devEmail,
@@ -174,14 +175,6 @@ export function useOnboarding() {
     }, ACCEPT_SIGNATURE_DELAY_MS);
   }, [acceptingSignature, flash, setSession]);
 
-  const saveProfile = useCallback(
-    (profile: AgentProfile) => {
-      setSession((previous) => ({ ...previous, profile }));
-      flash("success", "Details saved", "Your signature has been regenerated from the updated values.");
-    },
-    [flash, setSession],
-  );
-
   const resetAll = useCallback(() => {
     try {
       window.localStorage.removeItem(STORAGE_KEY);
@@ -220,7 +213,6 @@ export function useOnboarding() {
     trainings: SEED_TRAININGS,
 
     profile: session.profile,
-    saveProfile,
 
     signatureAccepted: session.signatureAccepted,
     signatureText,

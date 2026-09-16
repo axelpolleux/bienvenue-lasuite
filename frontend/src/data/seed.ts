@@ -22,6 +22,12 @@ export const SEED_TEMPLATE: Template = {
   emailSignature: "{name} — {jobTitle}\n{department}\n{organisation}",
 };
 
+/**
+ * Stands in for the agent record pulled from Grist (name, job title,
+ * department, organisation, phone) that feeds the email signature. There is
+ * no in-app editing screen — this data is read-only from the agent's point
+ * of view, sourced from Grist once the real integration is wired up.
+ */
 export const SEED_PROFILE: AgentProfile = {
   jobTitle: "Project officer",
   department: "Digital Department",
@@ -33,38 +39,74 @@ export const SEED_TODOS: TodoItem[] = [
   {
     id: "t1",
     order: 1,
-    label: "Activate and verify my Fichiers storage space",
-    serviceLink: "https://fichiers.numerique.gouv.fr",
-    serviceName: "Fichiers",
-    validationType: "API_CHECK",
+    label: "Sign in to Docs and open your workspace",
+    description: "Docs is La Suite's collaborative writing tool for notes, guides and shared documents.",
+    serviceLink: "https://docs.numerique.gouv.fr",
+    serviceName: "Docs",
+    docUrl: "https://docs.numerique.gouv.fr/docs/0bbfe11d-2dd5-4c90-88ae-710e330f2152/",
+    validationType: "MANUAL",
   },
   {
     id: "t2",
     order: 2,
     label: "Sign in to Tchap and join the general room",
+    description: "Tchap is the secure instant messaging app used across the public administration.",
     serviceLink: "https://tchap.gouv.fr",
     serviceName: "Tchap",
+    docUrl: "https://docs.numerique.gouv.fr/docs/1aec951f-c8d8-49c0-ab9e-9a1aac629b3e/",
     validationType: "MANUAL",
   },
   {
     id: "t3",
     order: 3,
     label: "Set up Visio and run a test meeting",
+    description: "Visio is La Suite's video-conferencing tool for online meetings.",
     serviceLink: "https://visio.numerique.gouv.fr",
     serviceName: "Visio",
+    docUrl: "https://docs.numerique.gouv.fr/docs/2157fe5a-3c64-4f83-bf6b-71dc083f383e/",
     validationType: "MANUAL",
   },
   {
     id: "t4",
     order: 4,
+    label: "Sign in to Grist and check your workspace",
+    description: "Grist is the spreadsheet-database tool used to manage structured team data.",
+    serviceLink: "https://grist.numerique.gouv.fr",
+    serviceName: "Grist",
+    docUrl: "https://docs.numerique.gouv.fr/docs/db1ba377-d266-4eda-b77a-2931550eecbd/",
+    validationType: "MANUAL",
+  },
+  {
+    id: "t5",
+    order: 5,
+    label: "Activate and verify my Fichiers storage space",
+    description: "Fichiers is your personal and shared file storage space.",
+    serviceLink: "https://fichiers.numerique.gouv.fr",
+    serviceName: "Fichiers",
+    docUrl: "https://docs.numerique.gouv.fr/docs/0b8b54fb-ef03-48fa-99b8-b88a289ceb8c/",
+    validationType: "API_CHECK",
+  },
+  {
+    id: "t6",
+    order: 6,
+    label: "Sign in to France Transfert and check access",
+    description: "France Transfert lets you securely send large files to people outside the administration.",
+    serviceLink: "https://francetransfert.numerique.gouv.fr",
+    serviceName: "France Transfert",
+    docUrl: "https://docs.numerique.gouv.fr/docs/a3830491-b903-4565-a85b-ba5f55740527/",
+    validationType: "MANUAL",
+  },
+  {
+    id: "t7",
+    order: 7,
     label: "Read the IT and security charter",
     serviceLink: "https://fichiers.numerique.gouv.fr/s/charter",
     serviceName: "Fichiers",
     validationType: "MANUAL",
   },
   {
-    id: "t5",
-    order: 5,
+    id: "t8",
+    order: 8,
     label: "Validate my official email signature",
     serviceLink: "",
     serviceName: "",
@@ -95,6 +137,6 @@ export const SEED_TRAININGS: Training[] = [
 
 /** Demo Dev Auth identities, mirroring `X-Dev-User-Email` (see `04-external-integrations.md`, section 2.2). */
 export const DEV_AGENTS: Record<string, Agent & { seedDone: Record<string, boolean> }> = {
-  "alex.martin@gouv.fr": { name: "Alex Martin", email: "alex.martin@gouv.fr", seedDone: { t1: true } },
+  "alex.martin@gouv.fr": { name: "Alex Martin", email: "alex.martin@gouv.fr", seedDone: { t5: true } },
   "lea.fontaine@gouv.fr": { name: "Léa Fontaine", email: "lea.fontaine@gouv.fr", seedDone: {} },
 };

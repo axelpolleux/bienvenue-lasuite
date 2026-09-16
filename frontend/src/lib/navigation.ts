@@ -17,7 +17,7 @@ export function buildNavItems(remainingSteps: number): NavItem[] {
     { screen: "home", label: "Home", shortLabel: "Home", count: null },
     { screen: "checklist", label: "My checklist", shortLabel: "Checklist", count: remainingSteps },
     { screen: "resources", label: "Resources", shortLabel: "Resources", count: null },
+    { screen: "contact", label: "Contact", shortLabel: "Contact", count: null },
     { screen: "signature", label: "Email signature", shortLabel: "Signature", count: null },
-    { screen: "profile", label: "My profile", shortLabel: "Profile", count: null },
   ];
 }

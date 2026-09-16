@@ -14,7 +14,7 @@ export function Header({ title, subtitle, agentName }: HeaderProps) {
       <img src={logo} alt="Bienvenue à La Suite" className="bn-header__logo bn-header__mobile-brand" />
       <div className="bn-header__titles">
         <div className="bn-header__title">{title}</div>
-        <div className="bn-header__subtitle">{subtitle}</div>
+        {subtitle && <div className="bn-header__subtitle">{subtitle}</div>}
       </div>
       <div className="bn-header__avatar" aria-hidden="true">
         {initialsFor(agentName)}

@@ -33,6 +33,11 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="bn-todo__label">{todo.label}</div>
+          {todo.description && (
+            <div style={{ font: "400 12.5px/1.5 var(--bn-font)", color: "var(--bn-color-ink-subtle)", marginTop: 2 }}>
+              {todo.description}
+            </div>
+          )}
           <div className="bn-todo__meta">
             <span className="bn-todo__tag">{VALIDATION_TAGS[todo.validationType]}</span>
             <span className="bn-todo__meta-text">{metaText}</span>
@@ -63,6 +68,11 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
               Open {todo.serviceName} ↗
             </a>
           )}
+          {todo.docUrl && (
+            <a href={todo.docUrl} target="_blank" rel="noopener noreferrer" className="bn-button bn-button--link">
+              Documentation ↗
+            </a>
+          )}
         </div>
       )}
 
@@ -74,6 +84,11 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
           {todo.serviceLink && (
             <a href={todo.serviceLink} target="_blank" rel="noopener noreferrer" className="bn-button bn-button--link">
               Open {todo.serviceName} ↗
+            </a>
+          )}
+          {todo.docUrl && (
+            <a href={todo.docUrl} target="_blank" rel="noopener noreferrer" className="bn-button bn-button--link">
+              Documentation ↗
             </a>
           )}
         </div>

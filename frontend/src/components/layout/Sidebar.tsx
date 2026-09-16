@@ -39,7 +39,6 @@ export function Sidebar({ agent, activeScreen, remainingSteps, onNavigate, onSig
       <div className="bn-sidebar__account">
         <div className="bn-sidebar__account-name">{agent.name}</div>
         <div className="bn-sidebar__account-email">{agent.email}</div>
-        <div style={{ font: "400 11.5px/1.4 var(--bn-font)", color: "var(--bn-color-ink-subtle)" }}>Role: new agent</div>
         <button type="button" className="bn-sidebar__signout" onClick={onSignOut}>
           Sign out
         </button>
