@@ -178,6 +178,7 @@ OIDC_OP_LOGOUT_ENDPOINT = env(
     default="http://localhost:8180/realms/bienvenue-lasuite/protocol/openid-connect/logout",
 )
 OIDC_OP_LOGOUT_URL_METHOD = "src.oidc.provider_logout"
+OIDC_STORE_ID_TOKEN = True
 
 LOGIN_URL = "oidc_authentication_init"
 LOGIN_REDIRECT_URL = "/whoami/"
