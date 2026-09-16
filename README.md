@@ -1,55 +1,123 @@
-# Bienvenue à La Suite
+# Bienvenue à La Suite — New Agent frontend (reformatted)
 
-> **A modular onboarding widget/template ecosystem for [La Suite Numérique](https://lasuite.numerique.gouv.fr), powered by [Grist](https://www.getgrist.com).**
+This is a reformatted version of the single-file `Bienvenue_App.html`
+prototype, split into the component structure documented in
+`03-frontend-app.md` and brought in line with the repository's
+`AGENTS.md` conventions. It renders the **New Agent** screens only
+(Login, Home, Checklist, Resources, Signature, Profile) — the Manager
+dashboard from the architecture docs is not part of the source prototype
+and is left as a follow-up.
 
-![Status: Concept](https://img.shields.io/badge/status-concept%20%2F%20hackathon-blue.svg)
-![Accessibility: RGAA / WCAG 2.1 AA](https://img.shields.io/badge/accessibility-RGAA%20%2F%20WCAG%20AA-blueviolet.svg)
-[![Powered by: Grist](https://img.shields.io/badge/database-Grist-orange.svg)](https://www.getgrist.com/)
-[![License: GPL-2.0](https://img.shields.io/badge/license-GPL--2.0-green.svg)](./LICENSE)
+## What changed, and why
 
----
+- **One class component → many typed modules.** The original was a single
+  ~300-line `Component extends DCLogic` class mixing state, side effects,
+  and a giant `renderVals()` view-model. It is now:
+  - `hooks/useOnboarding.ts` — state and actions (session, checklist,
+    signature, profile), the local-prototype stand-in for the
+    `useOnboarding.ts` / TanStack Query hook described in the frontend
+    architecture doc.
+  - `hooks/useLocalStorageState.ts`, `hooks/useAlert.ts` — small, reusable
+    pieces of that state, each with one responsibility (AGENTS.md
+    "Readability and design").
+  - `lib/onboarding.ts`, `lib/navigation.ts` — pure, side-effect-free
+    functions (sequential lock computation, signature text, formatting),
+    easy to unit test in isolation.
+  - `components/**` and `pages/**` — presentational pieces matching the
+    directory layout in `03-frontend-app.md` section 2.
+- **Inline `style="..."` strings → `styles/tokens.css`.** Component-level
+  layout still uses a few inline styles for one-off spacing, but repeated
+  visual patterns (buttons, cards, the checklist, alerts, forms) are now
+  BEM-like `bn-*` classes over CSS custom properties, per AGENTS.md's CSS
+  guidance and matching how `@gouvfr-lasuite/ui-tokens` is meant to be
+  consumed once installed (see `main.tsx`).
+- **Naming.** `camelCase` for variables/functions/hooks, `PascalCase` for
+  components and types, no abbreviations that weren't already domain terms
+  (`todo`, `Fichiers`, `Tchap`).
+- **Docs.** Every exported function/component/hook has a short TSDoc
+  comment stating its purpose and, where relevant, which backend endpoint
+  or architecture-doc section it stands in for — so swapping the mock
+  `checkFichiersAccount()` for a real `POST /api/todos/{id}/verify/` call
+  later is a localized change.
+- **Real logo.** `assets/bienvenue-logo.png` (the uploaded wordmark)
+  replaces the hand-drawn Marianne triband as the primary brand mark in
+  the header, sidebar and login screen; the triband can be reintroduced
+  as a small compliance mark once the app integrates with the official
+  `@gouvfr-lasuite/ui-components` header.
 
-## Executive Summary
+## What this prototype still simulates
 
-**Bienvenue à La Suite** is an accessible, modular onboarding widget/template designed for French public sector organizations deploying _La Suite Numérique_. It streamlines and demystifies the newcomer arrival process through a centralized, interactive checklist and progress bar.
+Per `05-local-development.md`, the real backend exposes a mock Fichiers
+endpoint and Grist-backed templates. This standalone frontend has no
+Django BFF to call, so:
 
-Built with an **accessibility** mindset, the experience helps every agent to get their administrative tasks, for the first month.
+- Checklist data comes from `data/seed.ts` instead of
+  `GET /api/onboarding/me/`.
+- `verifyTodo()` in `useOnboarding.ts` always resolves successfully after
+  a short delay, standing in for `POST /api/todos/{id}/verify/` against
+  the Fichiers mock.
+- Progress persists to `localStorage`, standing in for PostgreSQL.
 
-By using **Grist** as an open-source, relational database backend, it allows HR and IT teams to maintain a **Universal Base Template** (administrative accounts, equipment, accessibility requests, core Suite apps, etc.) while letting individual departments append or modify **Role-Specific Onboarding Modules** (specific tools, compliance, local contacts).
+Wiring this up to the real BFF means replacing `data/seed.ts` and the
+body of `useOnboarding.ts` with `TanStack Query` calls into
+`api/onboarding.ts`, without changing any page or component — they only
+consume the hook's return value.
 
-Managers and mentors gain real-time visibility into each agent's onboarding journey, ensuring no administrative, security, or accessibility requirement falls through the cracks.
+## Directory map
 
----
-
-## Key Objectives
-
+```text
+frontend/
+├── index.html
+├── README.md
+└── src/
+    ├── main.tsx
+    ├── App.tsx
+    ├── assets/
+    │   └── bienvenue-logo.png
+    ├── styles/
+    │   └── tokens.css
+    ├── types/
+    │   └── index.ts
+    ├── data/
+    │   └── seed.ts
+    ├── lib/
+    │   ├── onboarding.ts
+    │   └── navigation.ts
+    ├── hooks/
+    │   ├── useOnboarding.ts
+    │   ├── useLocalStorageState.ts
+    │   └── useAlert.ts
+    ├── components/
+    │   ├── auth/LoginScreen.tsx
+    │   ├── layout/Header.tsx
+    │   ├── layout/Sidebar.tsx
+    │   ├── layout/TabBar.tsx
+    │   ├── layout/AlertBanner.tsx
+    │   └── onboarding/
+    │       ├── ProgressBar.tsx
+    │       ├── TodoList.tsx
+    │       ├── TodoItemRow.tsx
+    │       ├── ColleaguesList.tsx
+    │       ├── DocumentsList.tsx
+    │       ├── TrainingList.tsx
+    │       └── SignatureBox.tsx
+    └── pages/
+        ├── HomePage.tsx
+        ├── ChecklistPage.tsx
+        ├── ResourcesPage.tsx
+        ├── SignaturePage.tsx
+        └── ProfilePage.tsx
 ```
-   ┌─────────────────────────────────────────────────────────────┐
-   │                  Bienvenue à La Suite                       │
-   └──────────────┬───────────────────────────────┬──────────────┘
-                  │                               │
-         ┌────────▼────────┐             ┌────────▼────────┐
-         │  For Newcomers  │             │  For Managers   │
-         └────────┬────────┘             └────────┬────────┘
-                  │                               │
-  • Guided Step-by-Step Checklist  • Real-Time Progress Overview
-  • Administrative & IT Setup      • Customized Department Tasks
-  • Accommodation Requests         • Templates
-  • Interactive "La Suite" Demos   • Instant Visibility on Blockers
-  • Track Personal Progress
+
+## Running it
+
+```bash
+npm install react react-dom
+npm install -D vite @vitejs/plugin-react typescript @types/react @types/react-dom
+npm run dev
 ```
 
-1. **Accessibility & Inclusivity First (RGAA / a11y)**:
-   - ? Full compliance with French public administration accessibility rules (RGAA 4.1 / WCAG 2.1 AA).
-2. **Streamline Administrative Onboarding**:
-   - Workstation & peripherals configuration.
-   - Network & secure Wi-Fi access setup.
-   - Account provisioning across La Suite tools (AgentConnect / ProConnect, Tchap, Nextcloud/Docs, Grist, Webmail).
-3. **Accelerate Tool Adoption**:
-   - Interactive discovery tasks that guide agents through their first actions on La Suite.
-4. **Dual-Perspective Tracking**:
-   - **Agent View**: Interactive, keyboard-accessible checklist with clear progress percentage, deadlines, and direct links to guides.
-   - **Manager / RH View**: High-level supervision dashboard tracking onboarding status across teams and new recruits.
-5. **Modular & Scalable Hierarchy**:
-   - **Global Core Template**: Universal steps shared across public administrations.
-   - **Departmental / Pole Extensions**: Tailored tasks for specific divisions (e.g., IT, Legal, Field Operations, Regional Offices).
+(A `package.json` / `vite.config.ts` were not part of the uploaded
+prototype and are intentionally left out here — drop these files into the
+`frontend/` directory described in `05-local-development.md` and they
+will slot into the existing Vite setup.)
