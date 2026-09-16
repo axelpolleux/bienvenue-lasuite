@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 from pathlib import Path
 
+from corsheaders.defaults import default_headers
 import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "corsheaders",
+    "src.onboarding",
 ]
 
 MIDDLEWARE = [
@@ -63,6 +65,20 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS", default=["http://localhost:3000"]
 )
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-dev-user-email",
+    "x-grist-webhook-token",
+]
+
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+    ],
+    "DEFAULT_PARSER_CLASSES": [
+        "rest_framework.parsers.JSONParser",
+    ],
+}
 
 ROOT_URLCONF = "src.urls"
 
