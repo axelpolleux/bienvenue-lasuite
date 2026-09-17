@@ -19,61 +19,63 @@ const PAGE_COPY: Record<ScreenId, (doneCount: number, totalCount: number, signat
   signature: (_d, _t, signatureAccepted) => ["Email signature", signatureAccepted ? "Confirmed" : "Awaiting your confirmation"],
 };
 
+function AuthenticatedApp({ onboarding }: { onboarding: ReturnType<typeof useOnboarding> }) {
+	const { agent, screen, goToScreen, signOut, doneCount, totalCount, signatureAccepted, alert, dismissAlert } = onboarding;
+	const [title, subtitle] = PAGE_COPY[screen](doneCount, totalCount, signatureAccepted);
+	const remainingSteps = totalCount - doneCount;
+
+	return (
+		<div className="bn-app-shell bn-app-shell--split">
+			<Sidebar agent={agent} activeScreen={screen} remainingSteps={remainingSteps} onNavigate={goToScreen} onSignOut={signOut} />
+			<div className="bn-app-shell__body">
+				<Header title={title} subtitle={subtitle} agentName={agent.name} />
+				<AlertBanner alert={alert} onDismiss={dismissAlert} />
+				<main className="bn-page">
+					<div className="bn-page__inner">
+						{screen === "home" && <HomePage onboarding={onboarding} />}
+						{screen === "checklist" && <ChecklistPage onboarding={onboarding} />}
+						{screen === "resources" && <ResourcesPage onboarding={onboarding} />}
+						{screen === "contact" && <ContactPage onboarding={onboarding} />}
+						{screen === "signature" && <SignaturePage onboarding={onboarding} />}
+					</div>
+				</main>
+				<TabBar activeScreen={screen} remainingSteps={remainingSteps} onNavigate={goToScreen} />
+			</div>
+		</div>
+	);
+}
+
 /**
- * App root. Renders the Dev Auth {@link LoginScreen} until a session
- * exists, then the shell (sidebar/tab bar + header) around the active
- * onboarding screen. State and side effects live in {@link useOnboarding}.
+ * App root. Renders initial loading probe, Dev/Keycloak login, or authenticated shell.
  */
 export default function App() {
-  const onboarding = useOnboarding();
-  const {
-    isAuthenticated,
-    agent,
-    devEmail,
-    setDevEmail,
-    loggingIn,
-    signIn,
-    signOut,
-    screen,
-    goToScreen,
-    doneCount,
-    totalCount,
-    signatureAccepted,
-    alert,
-    dismissAlert,
-  } = onboarding;
+	const onboarding = useOnboarding();
+	const { isAuthenticated, isLoadingInitial, devEmail, setDevEmail, loggingIn, signInDev, signInKeycloak } = onboarding;
 
-  if (!isAuthenticated) {
-    return (
-      <div className="bn-app-shell">
-        <LoginScreen devEmail={devEmail} onDevEmailChange={setDevEmail} loggingIn={loggingIn} onSignIn={signIn} />
-      </div>
-    );
-  }
+	if (isLoadingInitial) {
+		return (
+			<div className="bn-app-shell" style={{ alignItems: "center", justifyContent: "center" }}>
+				<span className="bn-spinner bn-spinner--dark" style={{ width: 32, height: 32, borderWidth: 3 }} aria-label="Loading" />
+			</div>
+		);
+	}
 
-  const [title, subtitle] = PAGE_COPY[screen](doneCount, totalCount, signatureAccepted);
-  const remainingSteps = totalCount - doneCount;
+	if (!isAuthenticated) {
+		return (
+			<div className="bn-app-shell">
+				<AlertBanner alert={onboarding.alert} onDismiss={onboarding.dismissAlert} />
+				<LoginScreen
+					devEmail={devEmail}
+					onDevEmailChange={setDevEmail}
+					loggingIn={loggingIn}
+					onSignInDev={() => signInDev(devEmail)}
+					onSignInKeycloak={signInKeycloak}
+				/>
+			</div>
+		);
+	}
 
-  return (
-    <div className="bn-app-shell bn-app-shell--split">
-      <Sidebar agent={agent} activeScreen={screen} remainingSteps={remainingSteps} onNavigate={goToScreen} onSignOut={signOut} />
-
-      <div className="bn-app-shell__body">
-        <Header title={title} subtitle={subtitle} agentName={agent.name} />
-        <AlertBanner alert={alert} onDismiss={dismissAlert} />
-
-        <main className="bn-page">
-          <div className="bn-page__inner">
-            {screen === "home" && <HomePage onboarding={onboarding} />}
-            {screen === "checklist" && <ChecklistPage onboarding={onboarding} />}
-            {screen === "resources" && <ResourcesPage onboarding={onboarding} />}
-            {screen === "contact" && <ContactPage onboarding={onboarding} />}
-            {screen === "signature" && <SignaturePage onboarding={onboarding} />}
-          </div>
-        </main>
-
-        <TabBar activeScreen={screen} remainingSteps={remainingSteps} onNavigate={goToScreen} />
-      </div>
-    </div>
-  );
+	return <AuthenticatedApp onboarding={onboarding} />;
 }
+
+

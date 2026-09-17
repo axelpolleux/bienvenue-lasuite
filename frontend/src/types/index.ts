@@ -10,11 +10,22 @@
 
 export type ValidationType = "API_CHECK" | "MANUAL" | "GRIST" | "SIGNATURE";
 
+export interface AgentProgress {
+  totalTasks: number;
+  completedTasks: number;
+  percentage: number;
+}
+
 export interface Agent {
+  id?: string;
   /** Full display name, e.g. "Alex Martin". */
   name: string;
   /** Institutional email — the primary identity key across every service. */
   email: string;
+  role?: string;
+  signatureAccepted?: boolean;
+  progress?: AgentProgress;
+  createdAt?: string;
 }
 
 export interface Template {
@@ -48,7 +59,7 @@ export interface TodoWithStatus extends TodoItem {
 export interface Colleague {
   id: string;
   name: string;
-  role: string;
+  role?: string;
   tchapLink: string;
 }
 
@@ -66,6 +77,15 @@ export interface Training {
   title: string;
   videoUrl: string;
   durationMinutes: number;
+}
+
+export interface OnboardingBundle {
+  agent: Agent;
+  template: Template | null;
+  todos: TodoWithStatus[];
+  colleagues: Colleague[];
+  documents: OnboardingDocument[];
+  trainings: Training[];
 }
 
 export interface AgentProfile {
