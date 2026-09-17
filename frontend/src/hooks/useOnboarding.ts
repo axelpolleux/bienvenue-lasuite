@@ -7,6 +7,7 @@ import {
 	toggleTodoTask,
 	verifyTodoTask,
 } from "../lib/api";
+import { pullGrist, pushGrist } from "../lib/manager";
 import { buildSignatureText, findCurrentStep } from "../lib/onboarding";
 import type {
 	Agent,
@@ -130,6 +131,71 @@ function useSignatureMutation({ activeDevEmail, flash }: SignatureMutationParams
 	return {
 		acceptingSignature: mutation.isPending,
 		acceptSignature,
+	};
+}
+
+interface ManagerGristSyncParams {
+	activeDevEmail: string | null;
+	flash: (kind: "success" | "error" | "info", title: string, body: string) => void;
+}
+
+/**
+ * Handles on-demand bidirectional Grist synchronization mutations.
+ */
+function useManagerGristSync({ activeDevEmail, flash }: ManagerGristSyncParams) {
+	const queryClient = useQueryClient();
+
+	const pullMutation = useMutation({
+		mutationFn: () => pullGrist(activeDevEmail || undefined),
+		onSuccess: (data) => {
+			queryClient.invalidateQueries({ queryKey: ["onboarding"] });
+			const count = Object.values(data.synced || {}).reduce((acc, v) => acc + v, 0);
+			flash(
+				"success",
+				"Grist sync successful",
+				`Data fetched from Grist successfully (${count} items updated).`,
+			);
+		},
+		onError: (error) => {
+			const detail = error instanceof Error ? error.message : "Could not connect to Grist.";
+			flash("error", "Sync failed", detail);
+		},
+	});
+
+	const pushMutation = useMutation({
+		mutationFn: () => pushGrist(activeDevEmail || undefined),
+		onSuccess: (data) => {
+			const { updated = 0, created = 0 } = data.results || {};
+			flash(
+				"success",
+				"Progress pushed to Grist",
+				`Progress synced successfully (${updated + created} tasks updated in Grist).`,
+			);
+		},
+		onError: (error) => {
+			const detail = error instanceof Error ? error.message : "Could not connect to Grist.";
+			flash("error", "Push failed", detail);
+		},
+	});
+
+	const pullGristSync = useCallback(() => {
+		if (!pullMutation.isPending && !pushMutation.isPending) {
+			pullMutation.mutate();
+		}
+	}, [pullMutation, pushMutation]);
+
+	const pushGristSync = useCallback(() => {
+		if (!pullMutation.isPending && !pushMutation.isPending) {
+			pushMutation.mutate();
+		}
+	}, [pullMutation, pushMutation]);
+
+	return {
+		pullGristSync,
+		pushGristSync,
+		isPullingGrist: pullMutation.isPending,
+		isPushingGrist: pushMutation.isPending,
+		isSyncingGrist: pullMutation.isPending || pushMutation.isPending,
 	};
 }
 
@@ -258,6 +324,17 @@ export function useOnboarding() {
 		flash,
 	});
 
+	const {
+		pullGristSync,
+		pushGristSync,
+		isPullingGrist,
+		isPushingGrist,
+		isSyncingGrist,
+	} = useManagerGristSync({
+		activeDevEmail,
+		flash,
+	});
+
 	return {
 		isAuthenticated: !query.isError && !!query.data,
 		isLoadingInitial: query.isLoading,
@@ -287,6 +364,11 @@ export function useOnboarding() {
 		signatureText,
 		acceptingSignature,
 		acceptSignature,
+		pullGristSync,
+		pushGristSync,
+		isPullingGrist,
+		isPushingGrist,
+		isSyncingGrist,
 		alert,
 		dismissAlert: dismiss,
 		resetAll: auth.resetAll,

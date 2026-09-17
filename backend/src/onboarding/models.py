@@ -97,6 +97,14 @@ class Agent(models.Model):
     def __str__(self) -> str:
         return f"{self.name} <{self.email}> ({self.role})"
 
+    def get_all_todos(self):
+        """Return all applicable todo items (template items + agent-specific custom items)."""
+        if not self.assigned_template:
+            return TodoItem.objects.filter(agent=self).order_by("order")
+        return TodoItem.objects.filter(
+            models.Q(template=self.assigned_template, agent__isnull=True) | models.Q(agent=self)
+        ).order_by("order")
+
 
 class TodoItem(models.Model):
     """Individual checklist item inside a template."""
@@ -106,6 +114,14 @@ class TodoItem(models.Model):
         Template,
         on_delete=models.CASCADE,
         related_name="todo_items",
+    )
+    agent = models.ForeignKey(
+        "Agent",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="custom_todo_items",
+        help_text="Optional agent assignment for manager-created custom tasks.",
     )
     label = models.CharField(max_length=512, help_text="Task action label.")
     description = models.TextField(

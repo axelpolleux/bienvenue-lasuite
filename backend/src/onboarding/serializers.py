@@ -84,16 +84,17 @@ class AgentSerializer(serializers.ModelSerializer):
 
     def get_progress(self, obj: Agent) -> Dict[str, int]:
         """Compute total tasks, completed tasks, and percentage."""
-        if not obj.assigned_template:
+        if not obj.assigned_template and not obj.custom_todo_items.exists():
             return {"total_tasks": 0, "completed_tasks": 0, "percentage": 0}
 
-        total = obj.assigned_template.todo_items.count()
+        all_todos = obj.get_all_todos()
+        total = all_todos.count()
         if total == 0:
             return {"total_tasks": 0, "completed_tasks": 0, "percentage": 100}
 
         completed = AgentTodoStatus.objects.filter(
             agent=obj,
-            todo_item__template=obj.assigned_template,
+            todo_item__in=all_todos,
             done=True,
         ).count()
 
@@ -183,7 +184,7 @@ class TodoItemWithStatusSerializer(serializers.ModelSerializer):
     def get_is_locked(self, obj: TodoItem) -> bool:
         """Determine sequential lock state based on prior task completions."""
         agent = self._get_agent()
-        if not agent or not agent.assigned_template:
+        if not agent:
             return False
 
         if "_completed_todo_ids" not in self.context:
@@ -195,7 +196,7 @@ class TodoItemWithStatusSerializer(serializers.ModelSerializer):
 
         if "_template_todos" not in self.context:
             self.context["_template_todos"] = list(
-                TodoItem.objects.filter(template=agent.assigned_template).values("id", "order")
+                agent.get_all_todos().values("id", "order")
             )
         template_todos = self.context["_template_todos"]
 
@@ -227,9 +228,7 @@ class OnboardingBundleSerializer(serializers.Serializer):
 
     def get_todos(self, obj: Agent) -> List[Dict[str, Any]]:
         """Serialize sequential tasks with completion statuses."""
-        if not obj.assigned_template:
-            return []
-        todos = obj.assigned_template.todo_items.all().order_by("order")
+        todos = obj.get_all_todos()
         return TodoItemWithStatusSerializer(
             todos,
             many=True,
@@ -288,7 +287,7 @@ class ManagerAgentOverviewSerializer(serializers.ModelSerializer):
         if not obj.assigned_template:
             return "No template assigned"
 
-        uncompleted = obj.assigned_template.todo_items.exclude(
+        uncompleted = obj.get_all_todos().exclude(
             id__in=AgentTodoStatus.objects.filter(agent=obj, done=True).values_list("todo_item_id", flat=True)
         ).order_by("order").first()
 

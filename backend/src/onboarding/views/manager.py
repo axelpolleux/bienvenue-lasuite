@@ -1,5 +1,7 @@
 """API views for manager dashboard and agent administration."""
 
+import logging
+import requests
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -9,9 +11,17 @@ from rest_framework.views import APIView
 from src.onboarding.models import Agent, RoleChoices, Template
 from src.onboarding.permissions import IsManager
 from src.onboarding.serializers import ManagerAgentOverviewSerializer
-from src.onboarding.services.grist_sync import sync_all
+from src.onboarding.services.grist_sync import push_progress_to_grist, sync_all
 
-__all__ = ["ManagerOverviewView", "AssignTemplateView", "SyncGristView"]
+logger = logging.getLogger(__name__)
+
+__all__ = [
+    "ManagerOverviewView",
+    "AssignTemplateView",
+    "SyncGristView",
+    "SyncGristPullView",
+    "SyncGristPushView",
+]
 
 
 class ManagerOverviewView(APIView):
@@ -85,30 +95,75 @@ class AssignTemplateView(APIView):
         )
 
 
-class SyncGristView(APIView):
-    """POST /api/manager/sync-grist/ pulling every Grist table into Postgres.
+class SyncGristPullView(APIView):
+    """POST /api/manager/sync-grist/pull/ pulling every Grist table into Postgres.
 
-    Triggered by the manager's "Save" button after editing templates in
-    Grist — no webhook, the manager explicitly asks for a resync.
+    Triggered by the manager's "Actualiser depuis Grist" action.
     """
 
     permission_classes = [IsAuthenticated, IsManager]
 
     def post(self, request) -> Response:
-        """Pull all 5 Grist tables and upsert by grist_row_id.
+        """Pull all Grist tables and upsert by grist_row_id.
 
-        Returns 200 with a per-table synced-row count, or 502 if Grist
-        could not be reached.
+        Returns 200 with a per-table synced-row count, 502 if Grist could
+        not be reached, or 500 on internal synchronization error.
         """
         try:
             results = sync_all()
-        except Exception:
+        except requests.RequestException as exc:
+            logger.warning("Could not reach Grist during pull sync: %s", exc)
             return Response(
                 {"error": "Could not reach Grist."},
                 status=status.HTTP_502_BAD_GATEWAY,
+            )
+        except Exception:
+            logger.exception("Unexpected error during Grist sync")
+            return Response(
+                {"error": "Internal synchronization error."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(
             {"message": "Sync complete.", "synced": results},
             status=status.HTTP_200_OK,
         )
+
+
+class SyncGristPushView(APIView):
+    """POST /api/manager/sync-grist/push/ pushing agent progress to Grist.
+
+    Triggered by the manager's "Envoyer vers Grist" action.
+    """
+
+    permission_classes = [IsAuthenticated, IsManager]
+
+    def post(self, request) -> Response:
+        """Push completed agent statuses to Grist MemberChecklist table.
+
+        Returns 200 with update/create counts, 502 if Grist could
+        not be reached, or 500 on internal synchronization error.
+        """
+        try:
+            results = push_progress_to_grist()
+        except requests.RequestException as exc:
+            logger.warning("Could not reach Grist during push sync: %s", exc)
+            return Response(
+                {"error": "Could not reach Grist."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        except Exception:
+            logger.exception("Unexpected error during Grist sync")
+            return Response(
+                {"error": "Internal synchronization error."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(
+            {"message": "Push complete.", "results": results},
+            status=status.HTTP_200_OK,
+        )
+
+
+# Backward-compatible alias for existing consumers
+SyncGristView = SyncGristPullView

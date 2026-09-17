@@ -4,6 +4,8 @@ from django.urls import path
 from src.onboarding.views.manager import (
     AssignTemplateView,
     ManagerOverviewView,
+    SyncGristPullView,
+    SyncGristPushView,
     SyncGristView,
 )
 from src.onboarding.views.mock_suite import mock_fichiers_user_view
@@ -31,6 +33,16 @@ urlpatterns = [
         "manager/sync-grist/",
         SyncGristView.as_view(),
         name="manager-sync-grist",
+    ),
+    path(
+        "manager/sync-grist/pull/",
+        SyncGristPullView.as_view(),
+        name="manager-sync-grist-pull",
+    ),
+    path(
+        "manager/sync-grist/push/",
+        SyncGristPushView.as_view(),
+        name="manager-sync-grist-push",
     ),
     # Local mock testing endpoints
     path(

@@ -237,6 +237,9 @@ thumb
 sketch
 # Local agent scratch & implementation plans
 .superpowers/
-docs/
+/docs/
+!grist-host/persist/docs/
+!grist-host/persist/docs/*.grist
+grist-host/persist/grist-sessions.db
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,react,django

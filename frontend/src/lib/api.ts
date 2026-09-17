@@ -26,7 +26,7 @@ interface RequestOptions extends RequestInit {
 /**
  * Common fetch wrapper handling credentials, CSRF, and dev headers.
  */
-async function apiFetch<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+export async function apiFetch<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { devEmail, headers: customHeaders, ...fetchOptions } = options;
   const method = (fetchOptions.method || "GET").toUpperCase();
 

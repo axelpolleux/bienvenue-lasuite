@@ -54,17 +54,16 @@ class Command(BaseCommand):
             )
             total_tasks_reset += updated
 
-            # Ensure all template tasks have a status row
-            if agent.assigned_template:
-                template_todos = agent.assigned_template.todo_items.all()
-                for todo in template_todos:
-                    _, created = AgentTodoStatus.objects.get_or_create(
-                        agent=agent,
-                        todo_item=todo,
-                        defaults={"done": False, "done_at": None},
-                    )
-                    if created:
-                        total_tasks_reset += 1
+            # Ensure all tasks have a status row
+            all_todos = agent.get_all_todos()
+            for todo in all_todos:
+                _, created = AgentTodoStatus.objects.get_or_create(
+                    agent=agent,
+                    todo_item=todo,
+                    defaults={"done": False, "done_at": None},
+                )
+                if created:
+                    total_tasks_reset += 1
 
             self.stdout.write(
                 f" - Reset {agent.email} (signature_accepted=False)"
