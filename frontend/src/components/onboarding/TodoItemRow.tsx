@@ -76,7 +76,7 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
               className="bn-button bn-button--link"
               style={{ marginLeft: "auto" }}
             >
-              Ouvrir la documentation
+              Open documentation
             </a>
           )}
         </div>
@@ -100,7 +100,7 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
               className="bn-button bn-button--link"
               style={{ marginLeft: "auto" }}
             >
-              Ouvrir la documentation
+              Open documentation
             </a>
           )}
         </div>

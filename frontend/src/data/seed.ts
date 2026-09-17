@@ -115,28 +115,38 @@ export const SEED_TODOS: TodoItem[] = [
   },
 ];
 
+/** Shared demo Tchap conversation link used for every colleague's "Chat on Tchap" button. */
+const TCHAP_DEMO_LINK = "https://claude.ai/artifact/TuLZxVo41LLtpAeoqDqwEJ";
+
 export const SEED_COLLEAGUES: Colleague[] = [
-  { id: "c1", name: "Camille Dupont", role: "IT referent", tchapLink: "https://tchap.gouv.fr/#/user/@camille.dupont:agent.gouv.fr", team: true },
-  { id: "c2", name: "Isabelle Delatour", role: "Team lead — your manager", tchapLink: "https://tchap.gouv.fr/#/user/@isabelle.delatour:agent.gouv.fr", team: true },
-  { id: "c3", name: "Karim Benali", role: "Technical referent", tchapLink: "https://tchap.gouv.fr/#/user/@karim.benali:agent.gouv.fr", team: true },
-  { id: "c4", name: "Sophie Mercier", role: "Local HR contact", tchapLink: "https://tchap.gouv.fr/#/user/@sophie.mercier:agent.gouv.fr", team: false },
-  { id: "c5", name: "Thomas Nguyen", role: "Onboarding buddy", tchapLink: "https://tchap.gouv.fr/#/user/@thomas.nguyen:agent.gouv.fr", team: true },
-  { id: "c6", name: "Julie Lambert", role: "Project manager", tchapLink: "https://tchap.gouv.fr/#/user/@julie.lambert:agent.gouv.fr", team: true },
-  { id: "c7", name: "Nicolas Petit", role: "Security officer", tchapLink: "https://tchap.gouv.fr/#/user/@nicolas.petit:agent.gouv.fr", team: false },
-  { id: "c8", name: "Amel Haddad", role: "Communications lead", tchapLink: "https://tchap.gouv.fr/#/user/@amel.haddad:agent.gouv.fr", team: false },
-  { id: "c9", name: "Marc Rousseau", role: "Facilities manager", tchapLink: "https://tchap.gouv.fr/#/user/@marc.rousseau:agent.gouv.fr", team: false },
-  { id: "c10", name: "Elodie Bernard", role: "Data protection officer", tchapLink: "https://tchap.gouv.fr/#/user/@elodie.bernard:agent.gouv.fr", team: false },
+  { id: "c1", name: "Camille Dupont", role: "IT referent", department: "IT & Digital", tchapLink: TCHAP_DEMO_LINK, team: true },
+  { id: "c2", name: "Isabelle Delatour", role: "Team lead — your manager", department: "Management", tchapLink: TCHAP_DEMO_LINK, team: true },
+  { id: "c3", name: "Karim Benali", role: "Technical referent", department: "IT & Digital", tchapLink: TCHAP_DEMO_LINK, team: true },
+  { id: "c4", name: "Sophie Mercier", role: "Local HR contact", department: "HR & Communications", tchapLink: TCHAP_DEMO_LINK, team: false },
+  { id: "c5", name: "Thomas Nguyen", role: "Onboarding buddy", department: "Management", tchapLink: TCHAP_DEMO_LINK, team: true },
+  { id: "c6", name: "Julie Lambert", role: "Project manager", department: "Management", tchapLink: TCHAP_DEMO_LINK, team: true },
+  { id: "c7", name: "Nicolas Petit", role: "Security officer", department: "IT & Digital", tchapLink: TCHAP_DEMO_LINK, team: false },
+  { id: "c8", name: "Amel Haddad", role: "Communications lead", department: "HR & Communications", tchapLink: TCHAP_DEMO_LINK, team: false },
+  { id: "c9", name: "Marc Rousseau", role: "Facilities manager", department: "Facilities & Data Protection", tchapLink: TCHAP_DEMO_LINK, team: false },
+  { id: "c10", name: "Elodie Bernard", role: "Data protection officer", department: "Facilities & Data Protection", tchapLink: TCHAP_DEMO_LINK, team: false },
+  { id: "c11", name: "Baptiste Girard", role: "Network engineer", department: "IT & Digital", tchapLink: TCHAP_DEMO_LINK, team: false },
+  { id: "c12", name: "Chloe Fontaine", role: "Deputy team lead", department: "Management", tchapLink: TCHAP_DEMO_LINK, team: false },
+  { id: "c13", name: "Yasmine Cherif", role: "Internal communications officer", department: "HR & Communications", tchapLink: TCHAP_DEMO_LINK, team: false },
+  { id: "c14", name: "Hugo Lefebvre", role: "Office manager", department: "Facilities & Data Protection", tchapLink: TCHAP_DEMO_LINK, team: false },
+  { id: "c15", name: "Manon Girard", role: "Recruitment officer", department: "HR & Communications", tchapLink: TCHAP_DEMO_LINK, team: false },
 ];
 
 /** Static demo tiles for the Home "first days" activity grid (not part of the checklist). */
 export const SEED_HOME_ACTIVITIES: HomeActivity[] = [
-  { id: "a1", icon: "breakfast", iconBg: "#fceec9", label: "Team breakfast", dueLabel: "D+7" },
-  { id: "a2", icon: "meeting", iconBg: "#e3e3fd", label: "Welcome meeting", dueLabel: "D+7" },
-  { id: "a3", icon: "equipment", iconBg: "#d7f5e3", label: "Receiving my IT equipment", dueLabel: "D+7" },
-  { id: "a4", icon: "tour", iconBg: "#fbe0f0", label: "Tour of my workplace", dueLabel: "D+7" },
+  { id: "a1", icon: "breakfast", iconBg: "#fceec9", label: "Team breakfast", dueLabel: "D+1" },
+  { id: "a2", icon: "meeting", iconBg: "#e3e3fd", label: "Welcome meeting", dueLabel: "D+1" },
+  { id: "a3", icon: "equipment", iconBg: "#d7f5e3", label: "Receiving my IT equipment", dueLabel: "D+1" },
+  { id: "a4", icon: "tour", iconBg: "#fbe0f0", label: "Tour of my workplace", dueLabel: "D+1" },
 ];
 
 export const SEED_DOCUMENTS: OnboardingDocument[] = [
+  { id: "d0a", title: "My first 30 days", url: "https://app.notion.com/p/3de89a0c98c581fabd8ef6bc4a3c56ba", format: "doc" },
+  { id: "d0b", title: "My environment", url: "https://app.notion.com/p/3de89a0c98c581ce8038c94beb36db42", format: "doc" },
   { id: "d1", title: "IT and security charter", url: "https://fichiers.numerique.gouv.fr/s/charter", format: "pdf" },
   { id: "d2", title: "Welcome booklet", url: "https://docs.numerique.gouv.fr/docs/welcome-booklet", format: "doc" },
   { id: "d3", title: "Intranet home", url: "https://intranet.numerique.gouv.fr", format: "link" },

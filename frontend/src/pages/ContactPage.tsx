@@ -20,13 +20,14 @@ export function ContactPage({ onboarding }: ContactPageProps) {
     () =>
       colleagues
         .filter((c) => filter === "All" || c.team)
-        .filter((c) => !q || c.name.toLowerCase().includes(q) || c.role.toLowerCase().includes(q)),
+        .filter((c) => !q || c.name.toLowerCase().includes(q) || c.role.toLowerCase().includes(q))
+        .sort((a, b) => a.name.localeCompare(b.name)),
     [colleagues, filter, q],
   );
 
   return (
     <>
-      <div className="bn-card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div className="bn-search-panel">
         <label className="bn-field">
           <span className="bn-field__label">Search colleagues</span>
           <input
@@ -37,19 +38,20 @@ export function ContactPage({ onboarding }: ContactPageProps) {
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
-        <div role="group" aria-label="Filter by team" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              type="button"
-              className="bn-filter-chip"
-              aria-pressed={filter === f}
-              onClick={() => setFilter(f)}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
+      </div>
+
+      <div className="bn-card" role="group" aria-label="Filter by team" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {FILTERS.map((f) => (
+          <button
+            key={f}
+            type="button"
+            className="bn-filter-chip"
+            aria-pressed={filter === f}
+            onClick={() => setFilter(f)}
+          >
+            {f}
+          </button>
+        ))}
       </div>
 
       <ColleaguesList colleagues={filteredColleagues} />

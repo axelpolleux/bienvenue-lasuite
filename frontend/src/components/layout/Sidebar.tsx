@@ -18,7 +18,13 @@ export function Sidebar({ agent, activeScreen, remainingSteps, onNavigate, onSig
   return (
     <nav aria-label="Main" className="bn-sidebar">
       <div className="bn-sidebar__brand">
-        <a href="https://lasuite.numerique.gouv.fr/" target="_blank" rel="noopener noreferrer" aria-label="La Suite numérique">
+        <a
+          href="https://lasuite.numerique.gouv.fr/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="La Suite numérique"
+          style={{ display: "block" }}
+        >
           <img src={logo} alt="Bienvenue à La Suite" className="bn-sidebar__logo" />
         </a>
       </div>

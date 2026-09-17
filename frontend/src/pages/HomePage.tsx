@@ -69,19 +69,19 @@ export function HomePage({ onboarding }: HomePageProps) {
         <div className="bn-activity-grid">
           {SEED_HOME_ACTIVITIES.map((activity) => (
             <div key={activity.id} className="bn-activity-card">
+              <span className="bn-activity-card__badge">
+                <svg width="11" height="11" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2.5" y="3.5" width="13" height="12" rx="1.5" />
+                  <path d="M2.5 7h13M6 2v3M12 2v3" />
+                </svg>
+                {activity.dueLabel}
+              </span>
               <div className="bn-activity-card__top">
                 <span className="bn-activity-card__icon" aria-hidden="true" style={{ background: activity.iconBg }}>
                   <ActivityIcon icon={activity.icon} />
                 </span>
-                <span className="bn-activity-card__badge">
-                  <svg width="11" height="11" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <rect x="2.5" y="3.5" width="13" height="12" rx="1.5" />
-                    <path d="M2.5 7h13M6 2v3M12 2v3" />
-                  </svg>
-                  {activity.dueLabel}
-                </span>
+                <div className="bn-activity-card__label">{activity.label}</div>
               </div>
-              <div className="bn-activity-card__label">{activity.label}</div>
             </div>
           ))}
         </div>
