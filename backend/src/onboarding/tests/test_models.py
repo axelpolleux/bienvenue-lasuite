@@ -67,6 +67,8 @@ class OnboardingModelsTest(TestCase):
         todo = TodoItem.objects.create(
             template=self.template,
             label="Activer compte Fichiers",
+            description="Fichiers is your personal storage space.",
+            doc_url="https://docs.numerique.gouv.fr/docs/fichiers/",
             service_link="https://fichiers.numerique.gouv.fr",
             order=1,
             validation_type=ValidationTypeChoices.API_CHECK,
@@ -74,7 +76,19 @@ class OnboardingModelsTest(TestCase):
         )
         self.assertEqual(todo.order, 1)
         self.assertEqual(todo.validation_type, "API_CHECK")
+        self.assertEqual(todo.description, "Fichiers is your personal storage space.")
+        self.assertEqual(todo.doc_url, "https://docs.numerique.gouv.fr/docs/fichiers/")
         self.assertEqual(str(todo), "[1] Activer compte Fichiers (API_CHECK)")
+
+    def test_todo_item_defaults(self):
+        """Verify TodoItem default description and null doc_url."""
+        todo = TodoItem.objects.create(
+            template=self.template,
+            label="Simple task",
+            order=2,
+        )
+        self.assertEqual(todo.description, "")
+        self.assertIsNone(todo.doc_url)
 
     def test_agent_todo_status_unique_constraint(self):
         """Verify AgentTodoStatus uniqueness per (agent, todo_item)."""

@@ -6,7 +6,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from src.onboarding.models import AgentTodoStatus, TodoItem
+from src.onboarding.models import AgentTodoStatus, TodoItem, ValidationTypeChoices
 from src.onboarding.serializers import OnboardingBundleSerializer
 from src.onboarding.services.suite_verifier import check_user_fichiers
 
@@ -152,6 +152,19 @@ class AcceptSignatureView(APIView):
 
         agent.signature_accepted = True
         agent.save(update_fields=["signature_accepted"])
+
+        if agent.assigned_template:
+            sig_todos = TodoItem.objects.filter(
+                template=agent.assigned_template,
+                validation_type=ValidationTypeChoices.SIGNATURE,
+            )
+            now = timezone.now()
+            for sig_todo in sig_todos:
+                AgentTodoStatus.objects.update_or_create(
+                    agent=agent,
+                    todo_item=sig_todo,
+                    defaults={"done": True, "done_at": now},
+                )
 
         return Response(
             {

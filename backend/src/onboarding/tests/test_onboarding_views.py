@@ -293,6 +293,29 @@ class OnboardingViewsTest(TestCase):
         self.agent.refresh_from_db()
         self.assertTrue(self.agent.signature_accepted)
 
+    def test_accept_signature_syncs_signature_todo_status(self):
+        """Verify accepting signature marks the template's SIGNATURE task as done."""
+        sig_todo = TodoItem.objects.create(
+            template=self.template,
+            label="Sign email template",
+            order=3,
+            validation_type=ValidationTypeChoices.SIGNATURE,
+        )
+        self.assertFalse(self.agent.signature_accepted)
+        response = self.client.post(
+            "/api/signature/accept/",
+            HTTP_X_DEV_USER_EMAIL="alex.martin@gouv.fr",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["signature_accepted"])
+
+        self.agent.refresh_from_db()
+        self.assertTrue(self.agent.signature_accepted)
+
+        status_rec = AgentTodoStatus.objects.get(agent=self.agent, todo_item=sig_todo)
+        self.assertTrue(status_rec.done)
+        self.assertIsNotNone(status_rec.done_at)
+
     def test_accept_signature_no_agent_profile(self):
         """Verify 404 when authenticated user has no linked agent profile."""
         user = User.objects.create_user(username="orphan_signer", password="secret")

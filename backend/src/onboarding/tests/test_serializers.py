@@ -96,12 +96,19 @@ class SerializersTest(TestCase):
 
     def test_todo_item_with_status_serializer(self):
         """Verify task serialization calculates locked state correctly."""
+        self.todo1.description = "Check your storage space."
+        self.todo1.doc_url = "https://docs.numerique.gouv.fr/docs/fichiers/"
+        self.todo1.save()
+
         data = TodoItemWithStatusSerializer(
             self.todo1,
             context={"agent": self.agent},
         ).data
         self.assertTrue(data["done"])
         self.assertFalse(data["is_locked"])
+        self.assertEqual(data["description"], "Check your storage space.")
+        self.assertEqual(data["doc_url"], "https://docs.numerique.gouv.fr/docs/fichiers/")
+        self.assertEqual(data["service_name"], "Fichiers")
 
         data2 = TodoItemWithStatusSerializer(
             self.todo2,
@@ -110,6 +117,30 @@ class SerializersTest(TestCase):
         self.assertFalse(data2["done"])
         # Step 1 is done, so Step 2 is unlocked
         self.assertFalse(data2["is_locked"])
+        self.assertEqual(data2["service_name"], "Tchap")
+
+    def test_todo_item_service_name_mapping(self):
+        """Verify get_service_name recognizes required Suite services."""
+        services = [
+            ("https://docs.numerique.gouv.fr", "Write docs", "Docs"),
+            ("https://tchap.gouv.fr", "Join Tchap", "Tchap"),
+            ("https://fichiers.numerique.gouv.fr", "Store files", "Fichiers"),
+            ("https://webinaire.numerique.gouv.fr", "Online webinar", "Webinaire"),
+            ("https://visio.numerique.gouv.fr", "Video call", "Visio"),
+            ("https://grist.numerique.gouv.fr", "Data table", "Grist"),
+            ("https://francetransfert.numerique.gouv.fr", "Send files", "France Transfert"),
+            ("https://custom.tool.local", "Internal Tool", "Service"),
+            (None, "Generic task without link", "Service"),
+        ]
+        for link, label, expected_service in services:
+            item = TodoItem.objects.create(
+                template=self.template,
+                label=label,
+                service_link=link,
+                order=10,
+            )
+            data = TodoItemWithStatusSerializer(item, context={"agent": self.agent}).data
+            self.assertEqual(data["service_name"], expected_service)
 
     def test_onboarding_bundle_serializer(self):
         """Verify root onboarding bundle serialization matches API spec."""

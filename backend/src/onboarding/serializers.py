@@ -111,6 +111,7 @@ class TodoItemWithStatusSerializer(serializers.ModelSerializer):
     done = serializers.SerializerMethodField()
     done_at = serializers.SerializerMethodField()
     is_locked = serializers.SerializerMethodField()
+    service_name = serializers.SerializerMethodField()
 
     class Meta:
         model = TodoItem
@@ -118,12 +119,38 @@ class TodoItemWithStatusSerializer(serializers.ModelSerializer):
             "id",
             "order",
             "label",
+            "description",
             "service_link",
+            "service_name",
+            "doc_url",
             "validation_type",
             "done",
             "done_at",
             "is_locked",
         ]
+
+    def get_service_name(self, obj: TodoItem) -> str:
+        """Resolve human-readable Suite service name from link or label."""
+        mapping = [
+            ("francetransfert", "France Transfert"),
+            ("fichiers", "Fichiers"),
+            ("tchap", "Tchap"),
+            ("webinaire", "Webinaire"),
+            ("visio", "Visio"),
+            ("grist", "Grist"),
+            ("docs", "Docs"),
+        ]
+        link = (obj.service_link or "").lower()
+        for key, name in mapping:
+            if key in link:
+                return name
+
+        label = (obj.label or "").lower()
+        for key, name in mapping:
+            if key in label:
+                return name
+
+        return "Service"
 
     def _get_agent(self) -> Optional[Agent]:
         """Resolve current agent from serializer context."""
