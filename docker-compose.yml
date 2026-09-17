@@ -44,6 +44,15 @@ services:
       APP_HOME_URL: http://localhost:8585
       GRIST_DEFAULT_EMAIL: manager@bienvenue.local
       GRIST_IN_SERVICE: "true"
+      # Grist resolves the org from the request's Host header. Calls made from
+      # inside the Docker network use the "grist" service name, which isn't a
+      # recognized domain, so pin a single fixed org instead ("Domain not
+      # recognized: grist" otherwise).
+      GRIST_SINGLE_ORG: docs-5
+      # Grist's webhook target validation only allows plain http:// for the
+      # literal hostname "localhost" — our webhook target is the Docker
+      # service name "backend", so it needs the wildcard. Local dev only.
+      ALLOWED_WEBHOOK_DOMAINS: "*"
     volumes:
       - grist_data:/persist
     ports:
@@ -72,6 +81,8 @@ services:
       OIDC_OP_TOKEN_ENDPOINT: http://keycloak:8080/realms/bienvenue-lasuite/protocol/openid-connect/token
       OIDC_OP_USER_ENDPOINT: http://keycloak:8080/realms/bienvenue-lasuite/protocol/openid-connect/userinfo
       OIDC_OP_JWKS_ENDPOINT: http://keycloak:8080/realms/bienvenue-lasuite/protocol/openid-connect/certs
+      GRIST_BASE_URL: http://grist:8484
+      GRIST_DOC_ID: 2ukGv1AtPNK3vmfWRSBLGw
     depends_on:
       postgresql:
         condition: service_healthy

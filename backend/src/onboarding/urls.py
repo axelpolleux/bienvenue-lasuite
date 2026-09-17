@@ -9,6 +9,7 @@ from src.onboarding.views.onboarding import (
     ToggleTodoView,
     VerifyTodoView,
 )
+from src.onboarding.views.webhooks import GristWebhookView
 
 urlpatterns = [
     # Agent onboarding endpoints
@@ -29,5 +30,7 @@ urlpatterns = [
         mock_fichiers_user_view,
         name="mock-fichiers-user",
     ),
+    # Grist webhook
+    path("webhooks/grist/", GristWebhookView.as_view(), name="grist-webhook"),
 ]
 
