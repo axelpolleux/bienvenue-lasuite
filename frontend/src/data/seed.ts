@@ -2,6 +2,7 @@ import type {
   Agent,
   AgentProfile,
   Colleague,
+  HomeActivity,
   OnboardingDocument,
   Template,
   Training,
@@ -115,11 +116,24 @@ export const SEED_TODOS: TodoItem[] = [
 ];
 
 export const SEED_COLLEAGUES: Colleague[] = [
-  { id: "c1", name: "Camille Dupont", role: "IT referent", tchapLink: "https://tchap.gouv.fr/#/user/@camille.dupont:agent.gouv.fr" },
-  { id: "c2", name: "Isabelle Delatour", role: "Team lead — your manager", tchapLink: "https://tchap.gouv.fr/#/user/@isabelle.delatour:agent.gouv.fr" },
-  { id: "c3", name: "Karim Benali", role: "Technical referent", tchapLink: "https://tchap.gouv.fr/#/user/@karim.benali:agent.gouv.fr" },
-  { id: "c4", name: "Sophie Mercier", role: "Local HR contact", tchapLink: "https://tchap.gouv.fr/#/user/@sophie.mercier:agent.gouv.fr" },
-  { id: "c5", name: "Thomas Nguyen", role: "Onboarding buddy", tchapLink: "https://tchap.gouv.fr/#/user/@thomas.nguyen:agent.gouv.fr" },
+  { id: "c1", name: "Camille Dupont", role: "IT referent", tchapLink: "https://tchap.gouv.fr/#/user/@camille.dupont:agent.gouv.fr", team: true },
+  { id: "c2", name: "Isabelle Delatour", role: "Team lead — your manager", tchapLink: "https://tchap.gouv.fr/#/user/@isabelle.delatour:agent.gouv.fr", team: true },
+  { id: "c3", name: "Karim Benali", role: "Technical referent", tchapLink: "https://tchap.gouv.fr/#/user/@karim.benali:agent.gouv.fr", team: true },
+  { id: "c4", name: "Sophie Mercier", role: "Local HR contact", tchapLink: "https://tchap.gouv.fr/#/user/@sophie.mercier:agent.gouv.fr", team: false },
+  { id: "c5", name: "Thomas Nguyen", role: "Onboarding buddy", tchapLink: "https://tchap.gouv.fr/#/user/@thomas.nguyen:agent.gouv.fr", team: true },
+  { id: "c6", name: "Julie Lambert", role: "Project manager", tchapLink: "https://tchap.gouv.fr/#/user/@julie.lambert:agent.gouv.fr", team: true },
+  { id: "c7", name: "Nicolas Petit", role: "Security officer", tchapLink: "https://tchap.gouv.fr/#/user/@nicolas.petit:agent.gouv.fr", team: false },
+  { id: "c8", name: "Amel Haddad", role: "Communications lead", tchapLink: "https://tchap.gouv.fr/#/user/@amel.haddad:agent.gouv.fr", team: false },
+  { id: "c9", name: "Marc Rousseau", role: "Facilities manager", tchapLink: "https://tchap.gouv.fr/#/user/@marc.rousseau:agent.gouv.fr", team: false },
+  { id: "c10", name: "Elodie Bernard", role: "Data protection officer", tchapLink: "https://tchap.gouv.fr/#/user/@elodie.bernard:agent.gouv.fr", team: false },
+];
+
+/** Static demo tiles for the Home "first days" activity grid (not part of the checklist). */
+export const SEED_HOME_ACTIVITIES: HomeActivity[] = [
+  { id: "a1", icon: "breakfast", iconBg: "#fceec9", label: "Team breakfast", dueLabel: "D+7" },
+  { id: "a2", icon: "meeting", iconBg: "#e3e3fd", label: "Welcome meeting", dueLabel: "D+7" },
+  { id: "a3", icon: "equipment", iconBg: "#d7f5e3", label: "Receiving my IT equipment", dueLabel: "D+7" },
+  { id: "a4", icon: "tour", iconBg: "#fbe0f0", label: "Tour of my workplace", dueLabel: "D+7" },
 ];
 
 export const SEED_DOCUMENTS: OnboardingDocument[] = [

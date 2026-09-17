@@ -18,7 +18,7 @@ export function ChecklistPage({ onboarding }: ChecklistPageProps) {
 
   return (
     <>
-      <div className="bn-card" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="bn-card bn-sticky-progress" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", font: "500 13.5px/1.3 var(--bn-font)" }}>
           <span>
             {doneCount} of {totalCount} steps completed

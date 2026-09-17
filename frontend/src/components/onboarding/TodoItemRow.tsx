@@ -1,5 +1,4 @@
 import { VALIDATION_HINTS, VALIDATION_TAGS, formatCompletionTimestamp } from "../../lib/onboarding";
-import { ServiceIcon } from "./ServiceIcon";
 import type { TodoWithStatus } from "../../types";
 
 export interface TodoItemRowProps {
@@ -74,11 +73,10 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
               href={todo.docUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bn-doc-link"
-              aria-label={`${todo.serviceName} documentation`}
-              title="Documentation"
+              className="bn-button bn-button--link"
+              style={{ marginLeft: "auto" }}
             >
-              <ServiceIcon name="Docs" />
+              Ouvrir la documentation
             </a>
           )}
         </div>
@@ -99,11 +97,10 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
               href={todo.docUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bn-doc-link"
-              aria-label={`${todo.serviceName} documentation`}
-              title="Documentation"
+              className="bn-button bn-button--link"
+              style={{ marginLeft: "auto" }}
             >
-              <ServiceIcon name="Docs" />
+              Ouvrir la documentation
             </a>
           )}
         </div>

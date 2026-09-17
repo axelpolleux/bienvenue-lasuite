@@ -1,4 +1,4 @@
-import { initialsFor } from "../../lib/onboarding";
+import { avatarColorFor, initialsFor } from "../../lib/onboarding";
 import type { Colleague } from "../../types";
 
 export interface ColleaguesListProps {
@@ -12,9 +12,11 @@ export function ColleaguesList({ colleagues }: ColleaguesListProps) {
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 11 }}>
       <h3 style={{ margin: 0, font: "700 16px/1.2 var(--bn-font)" }}>Colleagues to meet</h3>
-      {colleagues.map((colleague) => (
+      {colleagues.map((colleague) => {
+        const { bg, fg } = avatarColorFor(colleague.name);
+        return (
         <div key={colleague.id} className="bn-resource-row">
-          <span className="bn-resource-row__avatar" aria-hidden="true">
+          <span className="bn-resource-row__avatar" aria-hidden="true" style={{ background: bg, color: fg }}>
             {initialsFor(colleague.name)}
           </span>
           <div className="bn-resource-row__body">
@@ -25,7 +27,8 @@ export function ColleaguesList({ colleagues }: ColleaguesListProps) {
             Chat on Tchap ↗
           </a>
         </div>
-      ))}
+        );
+      })}
     </section>
   );
 }

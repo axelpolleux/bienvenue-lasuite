@@ -73,3 +73,22 @@ export function initialsFor(fullName: string): string {
     .slice(0, 2)
     .toUpperCase();
 }
+
+/** Google Contacts-style palette: one background/text pair per avatar, picked deterministically from the name. */
+const AVATAR_PALETTE: Array<{ bg: string; fg: string }> = [
+  { bg: "#e3e3fd", fg: "#000091" },
+  { bg: "#fde3e3", fg: "#c9184a" },
+  { bg: "#d7f5e3", fg: "#18753c" },
+  { bg: "#fceec9", fg: "#8a5a00" },
+  { bg: "#fbe0f0", fg: "#a3195b" },
+  { bg: "#dbeafe", fg: "#1e40af" },
+  { bg: "#e9e3fd", fg: "#5b21b6" },
+  { bg: "#dcf5f0", fg: "#0f766e" },
+];
+
+/** Deterministic avatar colour for a person, stable across renders (hashed from their name). */
+export function avatarColorFor(name: string): { bg: string; fg: string } {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
+}
