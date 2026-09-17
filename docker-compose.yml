@@ -52,13 +52,15 @@ services:
   backend:
     build: ./backend
     command: >
-      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      sh -c "python manage.py migrate && python manage.py seed_demo_data && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./backend:/app
       - /app/.venv
     ports:
       - "8000:8000"
     env_file:
+      - path: ./.env
+        required: false
       - path: ./backend/.env
         required: false
     environment:
@@ -75,6 +77,18 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    environment:
+      - BACKEND_URL=http://backend:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   postgresql_data:

@@ -1,0 +1,29 @@
+# Set default behavior to automatically normalize line endings to LF
+* text=auto eol=lf
+
+# Force LF on shell scripts, Makefiles, Dockerfiles, and source code
+*.sh text eol=lf
+Makefile text eol=lf
+Dockerfile* text eol=lf
+*.dockerignore text eol=lf
+
+*.py text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+.env* text eol=lf
+
+# Denote all binary files explicitly to prevent Git from modifying them
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.sqlite3 binary
