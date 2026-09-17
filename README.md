@@ -26,7 +26,7 @@ Comprehensive specifications are in [`doc/`](doc/README.md):
 - **Diego Luna** ([@Diego-Luna](https://github.com/Diego-Luna))
 - **Julie Bellec** ([@jubellec](https://github.com/jubellec))
 - **Benjamin Karas** ([@komorebi-32](https://github.com/komorebi-32))
-- **Maxime Demarest** ([@medemare](https://github.com/medemare))
+- **Melanie Demaret** ([@AlrightMela](https://github.com/AlrightMela))
 
 ## Configuration
 Pre-configured out of the box with Docker. To customize: `cp .env.example .env`.
