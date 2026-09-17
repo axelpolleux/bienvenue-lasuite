@@ -89,6 +89,7 @@ services:
     build: ./frontend
     environment:
       - BACKEND_URL=http://backend:8000
+      - VITE_GRIST_URL=http://localhost:8585
     volumes:
       - ./frontend:/app
       - /app/node_modules

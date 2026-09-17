@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { AlertBanner } from "./components/layout/AlertBanner";
 import { Header } from "./components/layout/Header";
 import { Sidebar } from "./components/layout/Sidebar";
 import { TabBar } from "./components/layout/TabBar";
 import { LoginScreen } from "./components/auth/LoginScreen";
+import { ManagerRedirect } from "./components/auth/ManagerRedirect";
 import { useOnboarding } from "./hooks/useOnboarding";
+import { GRIST_URL } from "./lib/grist";
 import { ChecklistPage } from "./pages/ChecklistPage";
 import { ContactPage } from "./pages/ContactPage";
 import { HomePage } from "./pages/HomePage";
@@ -50,7 +53,8 @@ function AuthenticatedApp({ onboarding }: { onboarding: ReturnType<typeof useOnb
  */
 export default function App() {
 	const onboarding = useOnboarding();
-	const { isAuthenticated, isLoadingInitial, devEmail, setDevEmail, loggingIn, signInDev, signInKeycloak } = onboarding;
+	const { isAuthenticated, isLoadingInitial, agent, devEmail, setDevEmail, loggingIn, signInDev, signInKeycloak } = onboarding;
+	const [managerSkippedGrist, setManagerSkippedGrist] = useState(false);
 
 	if (isLoadingInitial) {
 		return (
@@ -73,6 +77,10 @@ export default function App() {
 				/>
 			</div>
 		);
+	}
+
+	if (agent.role === "manager" && !managerSkippedGrist) {
+		return <ManagerRedirect targetUrl={GRIST_URL} onContinueToApp={() => setManagerSkippedGrist(true)} />;
 	}
 
 	return <AuthenticatedApp onboarding={onboarding} />;
