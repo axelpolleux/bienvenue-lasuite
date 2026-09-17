@@ -4,7 +4,7 @@ from typing import Optional, Tuple
 from django.conf import settings
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
-from src.onboarding.models import Agent, RoleChoices, Template
+from src.onboarding.models import Agent, RoleChoices
 
 
 class AuthenticatedAgentWrapper:
@@ -90,6 +90,10 @@ class DevOrKeycloakAuthentication(BaseAuthentication):
             f"{first} {last}".strip()
             or email_clean.split("@")[0].replace(".", " ").title()
         )
+        # No assigned_template default here on purpose: it's set by
+        # sync_members() from the RH-maintained Members list in Grist, ahead
+        # of the agent's first login. An agent nobody has provisioned yet
+        # simply sees an empty checklist rather than an arbitrary template.
         agent, _ = Agent.objects.get_or_create(
             email=email_clean,
             defaults={
@@ -97,9 +101,6 @@ class DevOrKeycloakAuthentication(BaseAuthentication):
                 "role": RoleChoices.NEW_AGENT,
             },
         )
-        if agent.assigned_template is None:
-            agent.assigned_template = Template.objects.first()
-            agent.save(update_fields=["assigned_template"])
 
         wrapper = AuthenticatedAgentWrapper(agent)
         request.agent = agent

@@ -111,12 +111,13 @@ class DevOrKeycloakAuthenticationTest(TestCase):
         self.assertEqual(wrapper.agent.email, "alex.martin@gouv.fr")
         self.assertEqual(request.agent, self.agent)
 
-    def test_auth_with_session_user_auto_provisions_and_assigns_template(self):
-        """Verify session authentication auto-provisions agent and assigns default template."""
-        template = Template.objects.create(
-            name="Default Onboarding",
-            grist_row_id="tpl-default-1",
-        )
+    def test_auth_with_session_user_auto_provisions_without_template(self):
+        """Verify session auth auto-provisions a new agent with no template.
+
+        Template assignment comes from sync_members() (the RH-maintained
+        Members list in Grist), not from an arbitrary default at login time.
+        """
+        Template.objects.create(name="Some Other Template", grist_row_id="tpl-1")
         user = User.objects.create_user(
             username="new.sso",
             email="new.sso@gouv.fr",
@@ -130,7 +131,7 @@ class DevOrKeycloakAuthenticationTest(TestCase):
         wrapper, token = user_auth
         self.assertEqual(wrapper.agent.email, "new.sso@gouv.fr")
         self.assertEqual(wrapper.agent.name, "Jean Dupont")
-        self.assertEqual(wrapper.agent.assigned_template, template)
+        self.assertIsNone(wrapper.agent.assigned_template)
         self.assertEqual(request.agent, wrapper.agent)
 
     def test_auth_with_anonymous_session_user_returns_none(self):

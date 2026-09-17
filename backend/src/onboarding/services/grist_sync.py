@@ -7,8 +7,10 @@ than cascade-deleted, so existing agent_todo_statuses never dangle.
 import logging
 
 from src.onboarding.models import (
+    Agent,
     Colleague,
     Document,
+    RoleChoices,
     Template,
     ValidationTypeChoices,
     Training,
@@ -18,7 +20,16 @@ from src.onboarding.services.grist_client import client
 
 logger = logging.getLogger(__name__)
 
-SYNCABLE_TABLES = ["Templates", "TodoItems", "Colleagues", "Documents", "Trainings"]
+# Templates first (children resolve their parent through it), Members right
+# after (it also references Templates, nothing depends on Members).
+SYNCABLE_TABLES = [
+    "Templates",
+    "Members",
+    "TodoItems",
+    "Colleagues",
+    "Documents",
+    "Trainings",
+]
 
 
 def _template_for(fields):
@@ -41,6 +52,40 @@ def sync_templates(records):
             },
         )
         synced += 1
+    return synced
+
+
+def sync_members(records):
+    """Provision/update new agents from the RH-maintained Members list.
+
+    Only ever sets `role` on first creation — never downgrades an existing
+    agent's role (e.g. a manager mistakenly added to this table).
+    """
+    synced, skipped = 0, 0
+    for record in records:
+        fields = record["fields"]
+        email = (fields.get("Email") or "").strip().lower()
+        if not email:
+            skipped += 1
+            continue
+        template = _template_for(fields)
+        name = fields.get("Name") or email.split("@")[0].replace(".", " ").title()
+
+        agent, created = Agent.objects.get_or_create(
+            email=email,
+            defaults={
+                "name": name,
+                "role": RoleChoices.NEW_AGENT,
+                "assigned_template": template,
+            },
+        )
+        if not created:
+            agent.name = name
+            agent.assigned_template = template
+            agent.save(update_fields=["name", "assigned_template"])
+        synced += 1
+    if skipped:
+        logger.warning("grist_sync: skipped %d Members with no email", skipped)
     return synced
 
 
@@ -145,6 +190,7 @@ def sync_trainings(records):
 
 _SYNC_FUNCTIONS = {
     "Templates": sync_templates,
+    "Members": sync_members,
     "TodoItems": sync_todo_items,
     "Colleagues": sync_colleagues,
     "Documents": sync_documents,
