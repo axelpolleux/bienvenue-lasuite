@@ -60,7 +60,22 @@ export interface Colleague {
   id: string;
   name: string;
   role?: string;
+  /** Service/department the colleague belongs to — drives their avatar colour. */
+  department?: string;
   tchapLink: string;
+  /** True when this person is on the new agent's own team. */
+  team?: boolean;
+}
+
+export type ContactFilter = "All" | "My team";
+
+/** One tile in the Home "first days" activity grid — static demo data, not tracked in the checklist. */
+export interface HomeActivity {
+  id: string;
+  icon: "breakfast" | "meeting" | "equipment" | "tour";
+  iconBg: string;
+  label: string;
+  dueLabel: string;
 }
 
 export type DocumentFormat = "pdf" | "doc" | "link";

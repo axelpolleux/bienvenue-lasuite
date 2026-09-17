@@ -1,47 +1,21 @@
-import type { Agent, AgentProfile, TodoItem, TodoWithStatus, ValidationType } from "../types";
+import type { Agent, AgentProfile, TodoWithStatus, ValidationType } from "../types";
+import { formatFrenchDateTime } from "./date";
 
 /** Human-readable explanation of how each validation type is resolved. */
 export const VALIDATION_HINTS: Record<ValidationType, string> = {
-  API_CHECK: "Verified automatically against the Fichiers service",
-  MANUAL: "Self-declared — mark it done when you have finished",
-  SIGNATURE: "Confirmed from the signature screen",
-  GRIST: "Synchronised from Grist",
+  API_CHECK: "Vérifié automatiquement auprès du service Fichiers",
+  MANUAL: "Déclaratif — cochez l'étape dès qu'elle est réalisée",
+  SIGNATURE: "Confirmé depuis l'écran de signature email",
+  GRIST: "Synchronisé automatiquement depuis Grist",
 };
 
 /** Short badge label shown next to each checklist step. */
 export const VALIDATION_TAGS: Record<ValidationType, string> = {
-  API_CHECK: "AUTO CHECK",
-  MANUAL: "SELF-DECLARED",
+  API_CHECK: "CONTRÔLE AUTO",
+  MANUAL: "DÉCLARATIF",
   SIGNATURE: "SIGNATURE",
   GRIST: "GRIST",
 };
-
-/**
- * Applies the sequential-unlock rule from `03-frontend-app.md` (section 5):
- * step N+1 stays locked until step N is resolved.
- *
- * @param todos - Template steps, any order.
- * @param done - Map of `todoId -> completed` for MANUAL/API_CHECK steps.
- * @param doneAt - Map of `todoId -> ISO completion timestamp`.
- * @param signatureAccepted - Whether the SIGNATURE step has been confirmed.
- * @returns Steps sorted by `order`, each annotated with `done` and `isLocked`.
- */
-export function computeTodoStatuses(
-  todos: TodoItem[],
-  done: Record<string, boolean>,
-  doneAt: Record<string, string>,
-  signatureAccepted: boolean,
-): TodoWithStatus[] {
-  const sorted = [...todos].sort((a, b) => a.order - b.order);
-  let previousResolved = true;
-
-  return sorted.map((todo) => {
-    const isDone = todo.validationType === "SIGNATURE" ? signatureAccepted : !!done[todo.id];
-    const isLocked = !previousResolved;
-    if (!isDone) previousResolved = false;
-    return { ...todo, done: isDone, doneAt: doneAt[todo.id] ?? null, isLocked };
-  });
-}
 
 /** Finds the first step the agent still needs to resolve, if any. */
 export function findCurrentStep(statuses: TodoWithStatus[]): TodoWithStatus | undefined {
@@ -54,13 +28,8 @@ export function buildSignatureText(agent: Agent, profile: AgentProfile): string 
   return [name, profile.jobTitle, profile.department, profile.organisation, "", agent.email, profile.phone].join("\n");
 }
 
-/** Formats an ISO timestamp as "16 Sep at 09:00", matching the reference prototype. */
 export function formatCompletionTimestamp(iso: string | null): string {
-  if (!iso) return "";
-  const date = new Date(iso);
-  const day = date.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
-  const time = date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-  return `${day} at ${time}`;
+  return formatFrenchDateTime(iso);
 }
 
 /** Derives up to two initials from a full name, for avatar badges. */
@@ -72,4 +41,23 @@ export function initialsFor(fullName: string): string {
     .join("")
     .slice(0, 2)
     .toUpperCase();
+}
+
+/** Google Contacts-style palette: one background/text pair per avatar, picked deterministically from the name. */
+const AVATAR_PALETTE: Array<{ bg: string; fg: string }> = [
+  { bg: "#e3e3fd", fg: "#000091" },
+  { bg: "#fde3e3", fg: "#c9184a" },
+  { bg: "#d7f5e3", fg: "#18753c" },
+  { bg: "#fceec9", fg: "#8a5a00" },
+  { bg: "#fbe0f0", fg: "#a3195b" },
+  { bg: "#dbeafe", fg: "#1e40af" },
+  { bg: "#e9e3fd", fg: "#5b21b6" },
+  { bg: "#dcf5f0", fg: "#0f766e" },
+];
+
+/** Deterministic avatar colour for a person, stable across renders (hashed from their name). */
+export function avatarColorFor(name: string): { bg: string; fg: string } {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
 }

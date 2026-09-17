@@ -13,9 +13,6 @@ from src.onboarding.models import (
 )
 from src.onboarding.serializers import (
     TemplateSerializer,
-    ColleagueSerializer,
-    DocumentSerializer,
-    TrainingSerializer,
     AgentSerializer,
     TodoItemWithStatusSerializer,
     OnboardingBundleSerializer,

@@ -1,4 +1,5 @@
 import { SignatureBox } from "../components/onboarding/SignatureBox";
+import { SignatureInstructions } from "../components/onboarding/SignatureInstructions";
 import type { UseOnboardingReturn } from "../hooks/useOnboarding";
 
 export interface SignaturePageProps {
@@ -12,13 +13,16 @@ export function SignaturePage({ onboarding }: SignaturePageProps) {
   const locked = !signatureAccepted && !!signatureStep?.isLocked;
 
   return (
-    <SignatureBox
-      agent={agent}
-      profile={profile}
-      accepted={signatureAccepted}
-      locked={locked}
-      accepting={acceptingSignature}
-      onAccept={acceptSignature}
-    />
+    <>
+      <SignatureBox
+        agent={agent}
+        profile={profile}
+        accepted={signatureAccepted}
+        locked={locked}
+        accepting={acceptingSignature}
+        onAccept={acceptSignature}
+      />
+      <SignatureInstructions />
+    </>
   );
 }

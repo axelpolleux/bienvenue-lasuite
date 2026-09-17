@@ -1,4 +1,6 @@
+import { ActivityIcon } from "../components/onboarding/ActivityIcon";
 import { ProgressBar } from "../components/onboarding/ProgressBar";
+import { SEED_HOME_ACTIVITIES } from "../data/seed";
 import { VALIDATION_HINTS } from "../lib/onboarding";
 import type { UseOnboardingReturn } from "../hooks/useOnboarding";
 
@@ -6,7 +8,7 @@ export interface HomePageProps {
   onboarding: UseOnboardingReturn;
 }
 
-/** Landing screen: progress hero, quick-stat tiles, and the current step. */
+/** Landing screen: progress hero, quick-stat tiles, first-days activities, and the current step. */
 export function HomePage({ onboarding }: HomePageProps) {
   const { agent, currentStep, doneCount, totalCount, colleagues, documents, signatureAccepted, goToScreen } = onboarding;
   const firstName = agent.name.split(" ")[0] ?? "";
@@ -35,7 +37,9 @@ export function HomePage({ onboarding }: HomePageProps) {
         <div style={{ flex: 1, minWidth: 250, display: "flex", flexDirection: "column", gap: 9 }}>
           <h2 style={{ margin: 0, font: "700 29px/1.2 var(--bn-font)" }}>Welcome, {firstName}</h2>
           <p style={{ margin: 0, font: "400 15px/1.6 var(--bn-font)", color: "#e4e4ff", maxWidth: "46ch" }}>
-            Your onboarding runs step by step. Complete each one to unlock the next.
+            Your onboarding runs step by step.
+            <br />
+            Complete each one to unlock the next.
           </p>
         </div>
         <div style={{ flex: "none", width: 238, maxWidth: "100%", display: "flex", flexDirection: "column", gap: 9 }}>
@@ -59,6 +63,29 @@ export function HomePage({ onboarding }: HomePageProps) {
           </button>
         ))}
       </div>
+
+      <section className="bn-card" style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+        <h3 style={{ margin: 0, font: "700 16px/1.2 var(--bn-font)" }}>Your first days</h3>
+        <div className="bn-activity-grid">
+          {SEED_HOME_ACTIVITIES.map((activity) => (
+            <div key={activity.id} className="bn-activity-card">
+              <span className="bn-activity-card__badge">
+                <svg width="11" height="11" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2.5" y="3.5" width="13" height="12" rx="1.5" />
+                  <path d="M2.5 7h13M6 2v3M12 2v3" />
+                </svg>
+                {activity.dueLabel}
+              </span>
+              <div className="bn-activity-card__top">
+                <span className="bn-activity-card__icon" aria-hidden="true" style={{ background: activity.iconBg }}>
+                  <ActivityIcon icon={activity.icon} />
+                </span>
+                <div className="bn-activity-card__label">{activity.label}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="bn-card" style={{ display: "flex", flexDirection: "column", gap: 15 }}>
         <h3 style={{ margin: 0, font: "700 16px/1.2 var(--bn-font)" }}>{currentStep ? "Your current step" : "Onboarding complete"}</h3>

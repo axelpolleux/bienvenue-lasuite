@@ -235,5 +235,8 @@ bower_components
 psd
 thumb
 sketch
+# Local agent scratch & implementation plans
+.superpowers/
+docs/
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,linux,react,django

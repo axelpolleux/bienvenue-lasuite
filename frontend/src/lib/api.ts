@@ -182,11 +182,31 @@ function mapColleague(raw: RawColleague): Colleague {
       role = match[2].trim();
     }
   }
+
+  let department = "Général";
+  if (role) {
+    const r = role.toLowerCase();
+    if (r.includes("it") || r.includes("technic") || r.includes("network") || r.includes("security")) {
+      department = "IT & Digital";
+    } else if (r.includes("team lead") || r.includes("manager") || r.includes("buddy") || r.includes("deputy")) {
+      department = "Management";
+    } else if (r.includes("hr") || r.includes("communication") || r.includes("recruitment")) {
+      department = "HR & Communications";
+    } else if (r.includes("facilities") || r.includes("data protection") || r.includes("office")) {
+      department = "Facilities & Data Protection";
+    }
+  }
+
+  const teamMembers = ["camille dupont", "isabelle delatour", "karim benali", "thomas nguyen", "julie lambert", "léa fontaine"];
+  const isTeam = teamMembers.includes(name.toLowerCase());
+
   return {
     id: raw.id,
     name,
     role: role || undefined,
+    department,
     tchapLink: raw.tchap_link,
+    team: isTeam,
   };
 }
 

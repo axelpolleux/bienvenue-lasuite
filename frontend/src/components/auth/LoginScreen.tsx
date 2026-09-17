@@ -1,5 +1,5 @@
 import type { ChangeEvent } from "react";
-import logo from "../../assets/bienvenue-logo.png";
+import logo from "../../assets/bienvenue-logo.webp";
 
 export interface LoginScreenProps {
 	devEmail: string;

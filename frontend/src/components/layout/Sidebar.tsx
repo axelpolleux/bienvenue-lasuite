@@ -1,6 +1,7 @@
-import logo from "../../assets/bienvenue-logo.png";
+import logo from "../../assets/bienvenue-logo.webp";
 import { GRIST_URL } from "../../lib/grist";
 import { buildNavItems } from "../../lib/navigation";
+import { NavIcon } from "./NavIcon";
 import type { Agent, ScreenId } from "../../types";
 
 export interface SidebarProps {
@@ -18,7 +19,16 @@ export function Sidebar({ agent, activeScreen, remainingSteps, onNavigate, onSig
   return (
     <nav aria-label="Main" className="bn-sidebar">
       <div className="bn-sidebar__brand">
-        <img src={logo} alt="Bienvenue à La Suite" className="bn-sidebar__logo" />
+        <a
+          href="https://lasuite.numerique.gouv.fr/"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="La Suite numérique (nouvel onglet)"
+          aria-label="La Suite numérique"
+          style={{ display: "block" }}
+        >
+          <img src={logo} alt="Bienvenue à La Suite" className="bn-sidebar__logo" />
+        </a>
       </div>
 
       {navItems.map((item) => (
@@ -29,7 +39,9 @@ export function Sidebar({ agent, activeScreen, remainingSteps, onNavigate, onSig
           aria-current={item.screen === activeScreen ? "page" : undefined}
           onClick={() => onNavigate(item.screen)}
         >
-          <span className="bn-nav-item__dot" aria-hidden="true" />
+          <span className="bn-nav-item__icon" aria-hidden="true">
+            <NavIcon screen={item.screen} />
+          </span>
           <span className="bn-nav-item__label">{item.label}</span>
           {item.count !== null && item.count > 0 && <span className="bn-nav-item__count">{item.count}</span>}
         </button>
