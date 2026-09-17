@@ -14,7 +14,6 @@ export function SignaturePage({ onboarding }: SignaturePageProps) {
 
   return (
     <>
-      <SignatureInstructions />
       <SignatureBox
         agent={agent}
         profile={profile}
@@ -23,6 +22,7 @@ export function SignaturePage({ onboarding }: SignaturePageProps) {
         accepting={acceptingSignature}
         onAccept={acceptSignature}
       />
+      <SignatureInstructions />
     </>
   );
 }

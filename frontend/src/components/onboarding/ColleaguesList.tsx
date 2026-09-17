@@ -13,7 +13,7 @@ export function ColleaguesList({ colleagues }: ColleaguesListProps) {
     <section style={{ display: "flex", flexDirection: "column", gap: 11 }}>
       <h3 style={{ margin: 0, font: "700 16px/1.2 var(--bn-font)" }}>Colleagues to meet</h3>
       {colleagues.map((colleague) => {
-        const { bg, fg } = avatarColorFor(colleague.name);
+        const { bg, fg } = avatarColorFor(colleague.department || colleague.name);
         return (
           <div key={colleague.id} className="bn-resource-row">
             <span className="bn-resource-row__avatar" aria-hidden="true" style={{ background: bg, color: fg }}>

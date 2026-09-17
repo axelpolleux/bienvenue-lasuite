@@ -42,7 +42,7 @@ export function ResourcesPage({ onboarding }: ResourcesPageProps) {
 
   return (
     <>
-      <div className="bn-card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <div className="bn-search-panel">
         <label className="bn-field">
           <span className="bn-field__label">Search resources</span>
           <input
@@ -53,6 +53,9 @@ export function ResourcesPage({ onboarding }: ResourcesPageProps) {
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
+      </div>
+
+      <div className="bn-card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div role="group" aria-label="Filter by type" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {FILTERS.map((f) => (
             <button

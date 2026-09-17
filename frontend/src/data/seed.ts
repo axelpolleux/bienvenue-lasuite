@@ -23,10 +23,10 @@ export const SEED_PROFILE: AgentProfile = {
 
 /** Static demo tiles for the Home "first days" activity grid (not part of the checklist). */
 export const SEED_HOME_ACTIVITIES: HomeActivity[] = [
-  { id: "a1", icon: "breakfast", iconBg: "#fceec9", label: "Team breakfast", dueLabel: "D+7" },
-  { id: "a2", icon: "meeting", iconBg: "#e3e3fd", label: "Welcome meeting", dueLabel: "D+7" },
-  { id: "a3", icon: "equipment", iconBg: "#d7f5e3", label: "Receiving my IT equipment", dueLabel: "D+7" },
-  { id: "a4", icon: "tour", iconBg: "#fbe0f0", label: "Tour of my workplace", dueLabel: "D+7" },
+  { id: "a1", icon: "breakfast", iconBg: "#fceec9", label: "Team breakfast", dueLabel: "D+1" },
+  { id: "a2", icon: "meeting", iconBg: "#e3e3fd", label: "Welcome meeting", dueLabel: "D+1" },
+  { id: "a3", icon: "equipment", iconBg: "#d7f5e3", label: "Receiving my IT equipment", dueLabel: "D+1" },
+  { id: "a4", icon: "tour", iconBg: "#fbe0f0", label: "Tour of my workplace", dueLabel: "D+1" },
 ];
 
 /** Demo Dev Auth identities, mirroring `X-Dev-User-Email` (see `04-external-integrations.md`, section 2.2). */

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import republiqueFrancaiseLogo from "../../assets/republique-francaise-logo.png";
 import type { Agent, AgentProfile } from "../../types";
 
 const COPY_FEEDBACK_MS = 2200;
@@ -55,11 +56,7 @@ export function SignatureBox({ agent, profile, accepted, locked, accepting, onAc
       </p>
 
       <div className="bn-signature-preview">
-        <div className="bn-marianne-block" aria-hidden="true">
-          <span className="bn-marianne-block__bar bn-marianne-block__bar--blue" />
-          <span className="bn-marianne-block__bar bn-marianne-block__bar--white" />
-          <span className="bn-marianne-block__bar bn-marianne-block__bar--red" />
-        </div>
+        <img src={republiqueFrancaiseLogo} alt="République française" className="bn-signature-preview__logo" style={{objectFit: 'contain'}} />
         <div style={{ flex: 1, minWidth: 190, display: "flex", flexDirection: "column", gap: 3 }}>
           <div className="bn-signature-preview__name">{displayName}</div>
           <div className="bn-signature-preview__line">{profile.jobTitle}</div>

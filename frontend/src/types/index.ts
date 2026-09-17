@@ -60,6 +60,8 @@ export interface Colleague {
   id: string;
   name: string;
   role?: string;
+  /** Service/department the colleague belongs to — drives their avatar colour. */
+  department?: string;
   tchapLink: string;
   /** True when this person is on the new agent's own team. */
   team?: boolean;

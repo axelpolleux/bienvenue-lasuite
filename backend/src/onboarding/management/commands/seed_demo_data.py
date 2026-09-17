@@ -30,7 +30,7 @@ class Command(BaseCommand):
         template, _ = Template.objects.update_or_create(
             grist_row_id="demo-template-core",
             defaults={
-                "name": "Socle Commun Administration",
+                "name": "Common Core Administration",
                 "email_signature": (
                     "Alex Martin\n"
                     "Chargé de mission — Direction Interministérielle du Numérique\n"
@@ -46,7 +46,7 @@ class Command(BaseCommand):
             defaults={
                 "template": template,
                 "order": 1,
-                "label": "Activer et vérifier mon espace de stockage Fichiers",
+                "label": "Activate and verify my file storage space",
                 "description": "Fichiers is your personal and shared file storage space.",
                 "service_link": "https://fichiers.numerique.gouv.fr",
                 "doc_url": "https://docs.numerique.gouv.fr/docs/0b8b54fb-ef03-48fa-99b8-b88a289ceb8c/",
@@ -59,7 +59,7 @@ class Command(BaseCommand):
             defaults={
                 "template": template,
                 "order": 2,
-                "label": "Se connecter à la messagerie instantanée Tchap",
+                "label": "Set up my instant messaging app",
                 "description": "Tchap is the secure instant messaging app used across the public administration.",
                 "service_link": "https://tchap.gouv.fr",
                 "doc_url": "https://docs.numerique.gouv.fr/docs/1aec951f-c8d8-49c0-ab9e-9a1aac629b3e/",
@@ -72,7 +72,7 @@ class Command(BaseCommand):
             defaults={
                 "template": template,
                 "order": 3,
-                "label": "Configurer mon modèle officiel de signature d'email",
+                "label": "Set up my official email signature template",
                 "description": "Configure and validate your standardized administrative email signature.",
                 "service_link": None,
                 "doc_url": "https://docs.numerique.gouv.fr/docs/signature-guide/",
@@ -81,21 +81,58 @@ class Command(BaseCommand):
         )
 
         # 3. Colleagues
-        Colleague.objects.update_or_create(
-            grist_row_id="demo-colleague-camille",
-            defaults={
-                "template": template,
-                "name": "Camille Dupont (Référent Onboarding / Manager)",
-                "tchap_link": "https://tchap.gouv.fr/#/user/@camille.dupont:agent.gouv.fr",
-            },
-        )
+        demo_colleagues = [
+            ("demo-c1", "Camille Dupont (IT referent)"),
+            ("demo-c2", "Isabelle Delatour (Team lead — your manager)"),
+            ("demo-c3", "Karim Benali (Technical referent)"),
+            ("demo-c4", "Sophie Mercier (Local HR contact)"),
+            ("demo-c5", "Thomas Nguyen (Onboarding buddy)"),
+            ("demo-c6", "Julie Lambert (Project manager)"),
+            ("demo-c7", "Nicolas Petit (Security officer)"),
+            ("demo-c8", "Amel Haddad (Communications lead)"),
+            ("demo-c9", "Marc Rousseau (Facilities manager)"),
+            ("demo-c10", "Elodie Bernard (Data protection officer)"),
+            ("demo-c11", "Baptiste Girard (Network engineer)"),
+            ("demo-c12", "Léa Fontaine (Deputy team lead)"),
+            ("demo-c13", "Anna Bellanger (Internal communications officer)"),
+            ("demo-c14", "Hugo Lefebvre (Office manager)"),
+            ("demo-c15", "Manon Girard (Recruitment officer)"),
+        ]
+        tchap_demo_link = "https://claude.ai/artifact/TuLZxVo41LLtpAeoqDqwEJ"
+        for row_id, full_name in demo_colleagues:
+            Colleague.objects.update_or_create(
+                grist_row_id=row_id,
+                defaults={
+                    "template": template,
+                    "name": full_name,
+                    "tchap_link": tchap_demo_link,
+                },
+            )
 
         # 4. Documents
+        Document.objects.update_or_create(
+            grist_row_id="demo-doc-first-days",
+            defaults={
+                "template": template,
+                "title": "My first 30 days",
+                "url": "https://app.notion.com/p/3de89a0c98c581fabd8ef6bc4a3c56ba",
+                "format": DocumentFormatChoices.DOC,
+            },
+        )
+        Document.objects.update_or_create(
+            grist_row_id="demo-doc-environment",
+            defaults={
+                "template": template,
+                "title": "My environment",
+                "url": "https://app.notion.com/p/3de89a0c98c581ce8038c94beb36db42",
+                "format": DocumentFormatChoices.DOC,
+            },
+        )
         Document.objects.update_or_create(
             grist_row_id="demo-doc-charte",
             defaults={
                 "template": template,
-                "title": "Charte Informatique et Sécurité des Systèmes",
+                "title": "IT and security",
                 "url": "https://fichiers.numerique.gouv.fr/s/charte-informatique",
                 "format": DocumentFormatChoices.PDF,
             },
@@ -106,7 +143,7 @@ class Command(BaseCommand):
             grist_row_id="demo-train-suite",
             defaults={
                 "template": template,
-                "title": "Prise en main des outils collaboratifs La Suite",
+                "title": "Getting Started with the La Suite Collaboration Tools",
                 "video_url": "https://tube.numerique.gouv.fr/w/demo-la-suite",
                 "duration_minutes": 15,
             },
@@ -137,6 +174,25 @@ class Command(BaseCommand):
             email="camille.dupont@gouv.fr",
             defaults={
                 "name": "Camille Dupont",
+                "role": RoleChoices.MANAGER,
+                "assigned_template": None,
+                "signature_accepted": True,
+            },
+        )
+
+        Agent.objects.update_or_create(
+            email="robert.dupont@gouv.fr",
+            defaults={
+                "name": "Robert Dupont",
+                "role": RoleChoices.MANAGER,
+                "assigned_template": None,
+                "signature_accepted": True,
+            },
+        )
+        Agent.objects.update_or_create(
+            email="Sherloc.holmes@gouv.fr",
+            defaults={
+                "name": "Sherloc Holmes",
                 "role": RoleChoices.MANAGER,
                 "assigned_template": None,
                 "signature_accepted": True,
