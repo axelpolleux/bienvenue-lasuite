@@ -23,13 +23,39 @@ const PAGE_COPY: Record<ScreenId, (doneCount: number, totalCount: number, signat
 };
 
 function AuthenticatedApp({ onboarding }: { onboarding: ReturnType<typeof useOnboarding> }) {
-	const { agent, screen, goToScreen, signOut, doneCount, totalCount, signatureAccepted, alert, dismissAlert } = onboarding;
+	const {
+		agent,
+		screen,
+		goToScreen,
+		signOut,
+		doneCount,
+		totalCount,
+		signatureAccepted,
+		alert,
+		dismissAlert,
+		pullGristSync,
+		pushGristSync,
+		isPullingGrist,
+		isPushingGrist,
+		isSyncingGrist,
+	} = onboarding;
 	const [title, subtitle] = PAGE_COPY[screen](doneCount, totalCount, signatureAccepted);
 	const remainingSteps = totalCount - doneCount;
 
 	return (
 		<div className="bn-app-shell bn-app-shell--split">
-			<Sidebar agent={agent} activeScreen={screen} remainingSteps={remainingSteps} onNavigate={goToScreen} onSignOut={signOut} />
+			<Sidebar
+				agent={agent}
+				activeScreen={screen}
+				remainingSteps={remainingSteps}
+				onNavigate={goToScreen}
+				onSignOut={signOut}
+				onPullGrist={pullGristSync}
+				onPushGrist={pushGristSync}
+				isPullingGrist={isPullingGrist}
+				isPushingGrist={isPushingGrist}
+				isSyncingGrist={isSyncingGrist}
+			/>
 			<div className="bn-app-shell__body">
 				<Header title={title} subtitle={subtitle} agentName={agent.name} />
 				<AlertBanner alert={alert} onDismiss={dismissAlert} />
