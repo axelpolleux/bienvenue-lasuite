@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Espace manager — widget Grist</title>
+<title>Manager Space — Grist Widget</title>
 <style>
   /* Marianne — typeface officielle de l'État français, chargée depuis le
      paquet npm réellement publié par La Suite numérique (@gouvfr-lasuite/ui-components),
@@ -56,7 +56,8 @@
   .topbar h1{ font-family:"Marianne", arial, sans-serif; font-weight:700; font-size:28px; margin:0; letter-spacing:-0.01em; }
   .topbar .sub{ color:var(--ink-muted); margin-top:5px; font-size:13.5px; }
 
-  .btn{ border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); padding:9px 15px; border-radius:var(--radius-s); font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .btn{ border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); padding:9px 15px; border-radius:var(--radius-s); font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; display:inline-flex; align-items:center; }
+  .actions{ display:flex; align-items:center; gap:8px; }
   .btn:hover{ border-color:var(--ink-faint); }
   .btn.primary{ background:var(--blue); border-color:var(--blue); color:#fff; }
   .btn.primary:hover{ opacity:.92; }
@@ -199,42 +200,47 @@
   .cg-row .cg-name{ font-weight:600; }
   .cg-row .cg-role{ color:var(--ink-muted); font-size:12px; }
   .cg-row input{ width:16px; height:16px; flex:none; accent-color:var(--blue); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; }
 </style>
 </head>
 <body>
 <div class="shell">
 
   <div id="view-loading" class="state">
-    <strong>Connexion au document…</strong>
-    Autorisez l'accès complet si Grist vous le demande.
+    <strong>Connecting to document…</strong>
+    Please grant full access if Grist prompts you.
   </div>
 
   <div id="view-identity" class="state" style="display:none; text-align:left; max-width:420px; margin:60px auto;">
-    <strong style="font-size:19px; display:block; margin-bottom:6px;">Qui êtes-vous ?</strong>
-    <p style="margin:0 0 18px;">Choisissez votre nom pour n'afficher que votre équipe. Ce choix reste dans ce navigateur.</p>
+    <strong style="font-size:19px; display:block; margin-bottom:6px;">Who are you?</strong>
+    <p style="margin:0 0 18px;">Select your name to display only your team. This preference is saved in this browser.</p>
     <div id="identity-list" style="display:flex; flex-direction:column; gap:8px;"></div>
   </div>
 
   <div id="view-list" style="display:none">
     <div class="topbar">
       <div>
-        <p class="brand">Bienvenue à La Suite — espace manager</p>
-        <h1>Espace manager</h1>
+        <p class="brand">Bienvenue à La Suite — Manager Space</p>
+        <h1>Manager Space</h1>
         <p class="sub" id="team-sub"></p>
       </div>
-      <button class="btn ghost" id="btn-switch-identity" style="padding:2px 4px; font-size:12px;">Changer d'identité</button>
+      <div class="actions">
+        <button class="btn ghost" id="btn-sync-bienvenue" style="gap:6px; font-size:12px; padding:2px 8px;" title="Synchronize with Bienvenue"><span id="sync-icon" style="display:inline-flex;align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg></span> <span id="sync-label">Sync Bienvenue</span></button>
+        <button class="btn ghost" id="btn-switch-identity" style="padding:2px 4px; font-size:12px;">Switch Identity</button>
+      </div>
     </div>
 
     <div class="controls">
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="text" id="search-input" placeholder="Rechercher un nom ou un poste…" aria-label="Rechercher dans l'équipe">
+        <input type="text" id="search-input" placeholder="Search by name or role…" aria-label="Search team">
       </div>
     </div>
 
     <div class="list">
       <div class="list-head">
-        <div>Membre</div><div>Service</div><div>Template</div><div>Contact</div><div>Arrivée</div><div>Intégration</div><div></div>
+        <div>Member</div><div>Department</div><div>Template</div><div>Contact</div><div>Arrival</div><div>Onboarding</div><div></div>
       </div>
       <div id="rows"></div>
     </div>
@@ -243,7 +249,7 @@
   <div id="view-detail">
     <button class="back" id="btn-back">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-      Retour à l'équipe
+      Back to team
     </button>
     <div class="dossier-head" id="dossier-head"></div>
     <div class="grid-2">
@@ -264,7 +270,7 @@
 <script>
 (function(){
 
-  var MONTHS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   var AVATAR_PALETTE = ["#5B5BD6","#B34700","#197C6A","#A32657","#3E6BC9","#7A5AF8","#B5842A"];
 
   function avatarColor(name){
@@ -306,12 +312,12 @@
     var months = (nowUTC.getUTCFullYear()-arrival.getUTCFullYear())*12 + (nowUTC.getUTCMonth()-arrival.getUTCMonth());
     if (arrival > nowUTC){
       var mFut = (arrival.getUTCFullYear()-nowUTC.getUTCFullYear())*12 + (arrival.getUTCMonth()-nowUTC.getUTCMonth());
-      return mFut <= 0 ? "Arrive bientôt" : "Arrive dans " + mFut + " mois";
+      return mFut <= 0 ? "Arriving soon" : "Arriving in " + mFut + (mFut > 1 ? " months" : " month");
     }
-    if (months < 1) return "Cette semaine";
-    if (months < 12) return "Depuis " + months + " mois";
+    if (months < 1) return "This week";
+    if (months < 12) return "For " + months + (months > 1 ? " months" : " month");
     var y = Math.floor(months/12);
-    return "Depuis " + y + (y>1 ? " ans" : " an");
+    return "For " + y + (y>1 ? " years" : " year");
   }
   function dateInputToGrist(val){
     if (!val) return null;
@@ -326,7 +332,7 @@
       var s = document.createElement("script");
       s.src = "https://docs.getgrist.com/grist-plugin-api.js";
       s.onload = resolve;
-      s.onerror = function(){ reject(new Error("grist-plugin-api.js indisponible")); };
+      s.onerror = function(){ reject(new Error("grist-plugin-api.js unavailable")); };
       document.head.appendChild(s);
     });
   }
@@ -345,7 +351,7 @@
 
   var SERVICES = [], MEMBERS = [], ITEMS = [], MC = [], COMMENTS = [], TEMPLATES = [];
   var searchQuery = "";
-  var MY_SERVICE_ID = null; // service géré par le manager identifié dans ce navigateur
+  var MY_SERVICE_ID = null; // service managed by identified manager in this browser
 
   function serviceById(id){ return SERVICES.filter(function(s){ return s.id === id; })[0]; }
   function templateById(id){ return TEMPLATES.filter(function(t){ return t.id === id; })[0]; }
@@ -365,11 +371,10 @@
     });
     return fromTemplate.concat(custom);
   }
-  /* Le rapprochement Service → Template se fait désormais côté Grist
-     (formule trigger sur Members.Template) — plus besoin de le refaire ici. */
-  /* Change le template d'un membre : conserve l'état "fait" des étapes communes
-     aux deux templates (comparées par libellé), ajoute les nouvelles étapes,
-     retire celles qui n'appartiennent plus au template choisi. */
+  /* Service -> Template mapping is now handled on the Grist side
+     (trigger formula on Members.Template) */
+  /* Updates a member's template: preserves completion state for shared steps
+     across templates, adds new steps, and removes obsolete steps. */
   async function changeMemberTemplate(memberId, newTemplateId){
     var m = MEMBERS.filter(function(x){ return x.id === memberId; })[0];
     if (!m || m.Template === newTemplateId) return;
@@ -400,9 +405,9 @@
     return { done: done, total: cl.length, pct: cl.length ? Math.round(done/cl.length*100) : 0 };
   }
   function statusChip(pct){
-    if (pct === 0) return { cls:"new", label:"À démarrer" };
-    if (pct === 100) return { cls:"done", label:"Terminée" };
-    return { cls:"progress", label:"En cours" };
+    if (pct === 0) return { cls:"new", label:"Not started" };
+    if (pct === 100) return { cls:"done", label:"Completed" };
+    return { cls:"progress", label:"In progress" };
   }
 
   async function loadAll(){
@@ -422,6 +427,14 @@
     TEMPLATES = rowsFromTable(res[5]);
   }
 
+  async function loadData(){
+    if (typeof grist !== "undefined" && grist.docApi && grist.docApi.fetchTable){
+      await loadAll();
+    }
+    renderRows();
+  }
+  var render = renderRows;
+
   /* ---------------- Rendering: list ---------------- */
 
   function filteredMembers(){
@@ -440,10 +453,13 @@
     var svc = serviceById(MY_SERVICE_ID);
     var totalDone = members.filter(function(m){ return progressOf(m.id).pct === 100; }).length;
     document.getElementById("team-sub").textContent =
-      (svc ? "Équipe " + svc.Name + " — " : "") + members.length + " membres — " + totalDone + " intégrations terminées";
+      (svc ? svc.Name + " Team — " : "") + members.length + " member" + (members.length === 1 ? "" : "s") + " — " + totalDone + " onboarding" + (totalDone === 1 ? "" : "s") + " completed";
 
     if (!members.length){
-      rows.innerHTML = '<div class="empty"><strong>Aucun membre ne correspond</strong>Essayez un autre nom.</div>';
+      var emptyMsg = searchQuery.trim()
+        ? '<strong>No matching members</strong>Try searching for a different name or role.'
+        : '<strong>No members in this team</strong>';
+      rows.innerHTML = '<div class="empty">' + emptyMsg + '</div>';
       return;
     }
 
@@ -457,7 +473,7 @@
       row.className = "row";
       row.tabIndex = 0;
       row.setAttribute("role","button");
-      row.setAttribute("aria-label", "Ouvrir la fiche de " + m.Name);
+      row.setAttribute("aria-label", "Open profile for " + m.Name);
       var tplOptions = TEMPLATES.map(function(t){
         return '<option value="' + t.id + '"' + (t.id === m.Template ? " selected" : "") + '>' + t.Name + '</option>';
       }).join("");
@@ -466,9 +482,9 @@
         '<div class="person"><div class="avatar" style="background:' + avatarColor(m.Name) + '">' + initials(m.Name) + '</div>' +
           '<div style="min-width:0"><div class="p-name">' + m.Name + '</div><div class="p-role">' + (m.Role||"") + '</div></div></div>' +
         '<div class="svc"><div class="svc-badge" style="background:' + svc.Color + '">' + svc.Initials + '</div><div class="svc-name">' + svc.Name + '</div></div>' +
-        '<div><select class="tpl-select" aria-label="Template d\'onboarding de ' + m.Name + '">' + tplOptions + '</select></div>' +
+        '<div><select class="tpl-select" aria-label="Onboarding template for ' + m.Name + '">' + tplOptions + '</select></div>' +
         '<div class="contact"><span>' + (m.Email||"") + '</span><span>' + (m.Phone||"") + '</span></div>' +
-        '<div class="since">' + sinceLabel(m.ArrivalDate) + (m.DepartureDate ? '<div style="color:var(--red);font-weight:600;margin-top:2px;">Départ prévu</div>' : '') + '</div>' +
+        '<div class="since">' + sinceLabel(m.ArrivalDate) + (m.DepartureDate ? '<div style="color:var(--red);font-weight:600;margin-top:2px;">Upcoming departure</div>' : '') + '</div>' +
         '<div><span class="status ' + chip.cls + '"><span class="dot"></span>' + chip.label + ' · ' + prog.done + '/' + prog.total + '</span></div>' +
         '<div class="chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>';
 
@@ -480,9 +496,9 @@
         try{
           await changeMemberTemplate(m.id, Number(tplSelect.value));
           renderRows();
-          toast("Template mis à jour pour " + m.Name.split(" ")[0]);
+          toast("Template updated for " + m.Name.split(" ")[0]);
         }catch(err){
-          toast("Échec de la mise à jour — réessayez");
+          toast("Update failed — please try again");
           tplSelect.disabled = false;
         }
       });
@@ -531,9 +547,9 @@
         '</div></div>' +
       '<div class="dossier-side">' +
         '<div class="field"><span class="k">Email</span><span class="v">' + (m.Email||"—") + '</span></div>' +
-        '<div class="field"><span class="k">Téléphone</span><span class="v">' + (m.Phone||"—") + '</span></div>' +
-        '<div class="field"><span class="k">Arrivée</span><span class="v">' + formatGristDate(m.ArrivalDate) + '</span></div>' +
-        '<div class="field"><span class="k">Départ</span><span class="v">' + (m.DepartureDate ? formatGristDate(m.DepartureDate) : "—") + '</span></div>' +
+        '<div class="field"><span class="k">Phone</span><span class="v">' + (m.Phone||"—") + '</span></div>' +
+        '<div class="field"><span class="k">Arrival</span><span class="v">' + formatGristDate(m.ArrivalDate) + '</span></div>' +
+        '<div class="field"><span class="k">Departure</span><span class="v">' + (m.DepartureDate ? formatGristDate(m.DepartureDate) : "—") + '</span></div>' +
         '<div class="field" style="align-items:center"><span class="k">Template</span><select id="detail-tpl-select" class="tpl-select" style="width:auto;max-width:150px;text-align:right;color:var(--ink);font-weight:600;">' + tplOptions + '</select></div>' +
       '</div>';
 
@@ -542,26 +558,26 @@
       try{
         await changeMemberTemplate(m.id, Number(e.target.value));
         renderDetail(m.id);
-        toast("Template mis à jour");
+        toast("Template updated");
       }catch(err){
-        toast("Échec de la mise à jour — réessayez");
+        toast("Update failed — please try again");
         e.target.disabled = false;
       }
     });
 
     var checklistPanel = document.getElementById("panel-checklist");
     checklistPanel.innerHTML =
-      '<h3>Suivi de l\'intégration</h3>' +
-      '<p class="panel-sub">Template « ' + (tpl ? tpl.Name : "—") + ' » — parcours pas-à-pas de découverte des outils La Suite numérique.</p>' +
+      '<h3>Onboarding Progress</h3>' +
+      '<p class="panel-sub">Template « ' + (tpl ? tpl.Name : "—") + ' » — step-by-step onboarding journey for La Suite numérique tools.</p>' +
       '<div class="progress-track"><div class="progress-fill" style="width:' + prog.pct + '%"></div></div>' +
       '<div id="check-list"></div>' +
-      '<button class="btn ghost" id="btn-add-task" style="margin-top:10px;padding-left:0;">+ Ajouter une tâche pour ' + m.Name.split(" ")[0] + '</button>' +
+      '<button class="btn ghost" id="btn-add-task" style="margin-top:10px;padding-left:0;">+ Add a task for ' + m.Name.split(" ")[0] + '</button>' +
       '<div class="add-form" id="add-task-form" style="margin-top:10px;padding:14px;">' +
-        '<div style="margin-bottom:10px;"><label style="display:block;font-size:11.5px;color:var(--ink-faint);margin-bottom:4px;font-weight:600;">Intitulé de la tâche</label>' +
-          '<input id="at-label" type="text" placeholder="Ex. Présenter le dossier X" style="width:100%;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-s);background:var(--paper);color:var(--ink);font-size:13px;font-family:inherit;"></div>' +
-        '<div style="margin-bottom:12px;"><label style="display:block;font-size:11.5px;color:var(--ink-faint);margin-bottom:4px;font-weight:600;">Détail (optionnel)</label>' +
-          '<input id="at-desc" type="text" placeholder="Précision utile pour ' + m.Name.split(" ")[0] + '" style="width:100%;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-s);background:var(--paper);color:var(--ink);font-size:13px;font-family:inherit;"></div>' +
-        '<div class="add-actions"><button class="btn ghost" id="at-cancel">Annuler</button><button class="btn primary" id="at-save">Ajouter la tâche</button></div>' +
+        '<div style="margin-bottom:10px;"><label style="display:block;font-size:11.5px;color:var(--ink-faint);margin-bottom:4px;font-weight:600;">Task title</label>' +
+          '<input id="at-label" type="text" placeholder="e.g. Review project documentation" style="width:100%;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-s);background:var(--paper);color:var(--ink);font-size:13px;font-family:inherit;"></div>' +
+        '<div style="margin-bottom:12px;"><label style="display:block;font-size:11.5px;color:var(--ink-faint);margin-bottom:4px;font-weight:600;">Details (optional)</label>' +
+          '<input id="at-desc" type="text" placeholder="Helpful details for ' + m.Name.split(" ")[0] + '" style="width:100%;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-s);background:var(--paper);color:var(--ink);font-size:13px;font-family:inherit;"></div>' +
+        '<div class="add-actions"><button class="btn ghost" id="at-cancel">Cancel</button><button class="btn primary" id="at-save">Add task</button></div>' +
       '</div>';
     var list = checklistPanel.querySelector("#check-list");
     var addTaskForm = checklistPanel.querySelector("#add-task-form");
@@ -570,16 +586,16 @@
     checklistPanel.querySelector("#at-save").addEventListener("click", async function(){
       var label = checklistPanel.querySelector("#at-label").value.trim();
       var desc = checklistPanel.querySelector("#at-desc").value.trim();
-      if (!label){ toast("L'intitulé est obligatoire"); return; }
+      if (!label){ toast("Task title is required"); return; }
       var btn = checklistPanel.querySelector("#at-save");
       btn.disabled = true;
       try{
-        await grist.docApi.applyUserActions([["AddRecord","MemberChecklist", null, { Member:m.id, CustomLabel:label, CustomDescription:desc, Done:false, DoneAt:null, AddedByManager:true }]]);
+        await grist.docApi.applyUserActions([["AddRecord","MemberChecklist", null, { Member:m.id, CustomLabel:label, CustomDescription:desc, Done:false, DoneAt:null }]]);
         await loadAll();
         renderDetail(m.id);
-        toast("Tâche ajoutée");
+        toast("Task added");
       }catch(err){
-        toast("Échec de l'enregistrement — réessayez");
+        toast("Failed to save — please try again");
         btn.disabled = false;
       }
     });
@@ -595,7 +611,7 @@
         '<label class="box" for="' + cid + '"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></label>' +
         '<div class="check-body"><label class="check-label" for="' + cid + '">' + item.Label + '<span class="check-kind">' + item.Kind + '</span></label>' +
         '<div class="check-desc">' + (item.Description||"") + '</div>' +
-        (done && row.DoneAt ? '<div class="check-meta">Terminé le ' + formatGristDate(row.DoneAt) + '</div>' : '') + '</div>';
+        (done && row.DoneAt ? '<div class="check-meta">Completed on ' + formatGristDate(row.DoneAt) + '</div>' : '') + '</div>';
 
       var input = el.querySelector("input");
       input.addEventListener("change", async function(){
@@ -611,7 +627,7 @@
           await loadAll();
           renderDetail(m.id);
         }catch(err){
-          toast("Échec de l'enregistrement — réessayez");
+          toast("Failed to save — please try again");
           input.checked = !isDone;
           input.disabled = false;
         }
@@ -621,15 +637,15 @@
 
     var commentsPanel = document.getElementById("panel-comments");
     commentsPanel.innerHTML =
-      '<h3>Notes de suivi</h3><p class="panel-sub">Visibles par les personnes ayant accès au document.</p>' +
-      '<div class="comment-form"><textarea id="comment-input" placeholder="Ajouter une note sur ' + m.Name.split(" ")[0] + '…"></textarea>' +
-      '<button class="btn primary" id="btn-comment">Ajouter la note</button></div>' +
+      '<h3>Manager Notes & Follow-up</h3><p class="panel-sub">Visible to everyone with access to this document.</p>' +
+      '<div class="comment-form"><textarea id="comment-input" placeholder="Add a note about ' + m.Name.split(" ")[0] + '…"></textarea>' +
+      '<button class="btn primary" id="btn-comment">Add note</button></div>' +
       '<div id="comment-list"></div>';
 
     var cl = commentsPanel.querySelector("#comment-list");
     var comments = memberComments(m.id);
     if (!comments.length){
-      cl.innerHTML = '<p style="color:var(--ink-faint);font-size:13px;margin:0;">Aucune note pour le moment.</p>';
+      cl.innerHTML = '<p style="color:var(--ink-faint);font-size:13px;margin:0;">No notes yet.</p>';
     } else {
       comments.forEach(function(c){
         var d = document.createElement("div");
@@ -649,9 +665,9 @@
         await grist.docApi.applyUserActions([["AddRecord","Comments", null, { Member:m.id, Date:todayUTCSeconds(), Text:val }]]);
         await loadAll();
         renderDetail(m.id);
-        toast("Note ajoutée");
+        toast("Note added");
       }catch(err){
-        toast("Échec de l'enregistrement — réessayez");
+        toast("Failed to save — please try again");
       }
       btn.disabled = false;
     });
@@ -659,18 +675,18 @@
     var colleagueIds = refListIds(m.ColleaguesToMeet);
     var colleagueMembers = MEMBERS.filter(function(x){ return colleagueIds.indexOf(x.id) > -1; });
     colleaguesPanel.innerHTML =
-      '<h3>Personnes à rencontrer</h3>' +
-      '<p class="panel-sub">Collègues à présenter à ' + m.Name.split(" ")[0] + ' pendant son arrivée.</p>' +
+      '<h3>People to Meet</h3>' +
+      '<p class="panel-sub">Colleagues to introduce to ' + m.Name.split(" ")[0] + ' during onboarding.</p>' +
       '<div class="colleagues-summary" id="colleagues-summary"></div>' +
-      '<button class="btn" id="btn-edit-colleagues">' + (colleagueMembers.length ? "Modifier la sélection" : "+ Choisir des collègues") + '</button>';
+      '<button class="btn" id="btn-edit-colleagues">' + (colleagueMembers.length ? "Edit selection" : "+ Select colleagues") + '</button>';
     var summaryEl = colleaguesPanel.querySelector("#colleagues-summary");
     summaryEl.innerHTML = colleagueMembers.length
       ? colleagueMembers.map(function(c){ return '<span class="colleague-chip">' + c.Name + (c.Role ? " · " + c.Role : "") + '</span>'; }).join("")
-      : '<p style="color:var(--ink-faint);font-size:13px;margin:0 0 10px;">Aucun collègue sélectionné pour le moment.</p>';
+      : '<p style="color:var(--ink-faint);font-size:13px;margin:0 0 10px;">No colleagues selected yet.</p>';
     colleaguesPanel.querySelector("#btn-edit-colleagues").addEventListener("click", function(){ openColleaguesModal(m.id); });
   }
 
-  /* ---------------- Personnes à rencontrer (sélection par accordéon) ---------------- */
+  /* ---------------- People to Meet (accordion selection) ---------------- */
 
   function refListIds(val){
     if (!val) return [];
@@ -686,7 +702,7 @@
 
     var groupsHtml = SERVICES.map(function(s){
       var members = MEMBERS.filter(function(x){ return x.Service === s.id && x.id !== memberId; })
-        .sort(function(a,b){ return (a.LastName||a.Name||"").localeCompare(b.LastName||b.Name||"", "fr"); });
+        .sort(function(a,b){ return (a.LastName||a.Name||"").localeCompare(b.LastName||b.Name||"", "en"); });
       if (!members.length) return "";
       var rows = members.map(function(x){
         var cid = "cg-" + x.id;
@@ -703,11 +719,11 @@
     }).join("");
 
     document.getElementById("colleagues-modal-content").innerHTML =
-      '<button class="close-btn" id="cg-close" aria-label="Fermer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
-      '<h3>Personnes à rencontrer</h3>' +
-      '<p class="modal-sub">Coche les collègues à présenter à ' + m.Name.split(" ")[0] + '.</p>' +
-      '<div class="colleagues-list">' + (groupsHtml || '<p style="color:var(--ink-faint);font-size:13px;">Aucun autre agent dans l\'équipe pour l\'instant.</p>') + '</div>' +
-      '<div class="add-actions"><button class="btn ghost" id="cg-cancel">Annuler</button><button class="btn primary" id="cg-save">Enregistrer</button></div>';
+      '<button class="close-btn" id="cg-close" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+      '<h3>People to Meet</h3>' +
+      '<p class="modal-sub">Select the colleagues to introduce to ' + m.Name.split(" ")[0] + '.</p>' +
+      '<div class="colleagues-list">' + (groupsHtml || '<p style="color:var(--ink-faint);font-size:13px;">No other team members yet.</p>') + '</div>' +
+      '<div class="add-actions"><button class="btn ghost" id="cg-cancel">Cancel</button><button class="btn primary" id="cg-save">Save</button></div>';
 
     document.getElementById("cg-close").addEventListener("click", closeColleaguesModal);
     document.getElementById("cg-cancel").addEventListener("click", closeColleaguesModal);
@@ -721,9 +737,9 @@
         await loadAll();
         renderDetail(memberId);
         closeColleaguesModal();
-        toast("Sélection enregistrée");
+        toast("Selection saved");
       }catch(err){
-        toast("Échec de l'enregistrement — réessayez");
+        toast("Failed to save — please try again");
         btn.disabled = false;
       }
     });
@@ -733,7 +749,7 @@
   colleaguesBackdrop.addEventListener("click", function(e){ if (e.target === colleaguesBackdrop) closeColleaguesModal(); });
   document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeColleaguesModal(); });
 
-  /* ---------------- Identité (manager ↔ service, mémorisée localement) ---------------- */
+  /* ---------------- Identity (manager <-> service, stored locally) ---------------- */
 
   function loadSavedServiceId(){
     try{
@@ -755,7 +771,7 @@
     var list = document.getElementById("identity-list");
     var managed = SERVICES.filter(function(s){ return s.Manager && s.Manager.trim() !== ""; });
     if (!managed.length){
-      list.innerHTML = '<p>Aucun manager n\'est encore renseigné sur les services (table Services, colonne Manager).</p>';
+      list.innerHTML = '<p>No managers are specified on departments yet (Services table, Manager column).</p>';
     } else {
       list.innerHTML = managed.map(function(s){
         return '<button class="btn" data-service="' + s.id + '" style="text-align:left;justify-content:flex-start;padding:12px 14px;">' +
@@ -780,12 +796,68 @@
     showIdentityGate();
   });
 
+  var SYNC_ICONS = {
+    idle: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>',
+    spin: '<svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>',
+    success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green, #18753C)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
+    error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9191e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+  };
+
+  var btnSync = document.getElementById("btn-sync-bienvenue");
+  if (btnSync){
+    btnSync.addEventListener("click", async function(){
+      var icon = document.getElementById("sync-icon");
+      var label = document.getElementById("sync-label");
+      btnSync.disabled = true;
+      if (icon) icon.innerHTML = SYNC_ICONS.spin;
+      if (label) label.textContent = "Synchronizing...";
+
+      try {
+        var pushRes = await fetch("http://localhost:8000/api/manager/sync-grist/push/", {
+          method: "POST",
+          headers: { "X-Dev-User-Email": "manager@bienvenue.local" }
+        });
+        if (!pushRes.ok) {
+          throw new Error("Push sync failed with status " + pushRes.status);
+        }
+
+        var pullRes = await fetch("http://localhost:8000/api/manager/sync-grist/pull/", {
+          method: "POST",
+          headers: { "X-Dev-User-Email": "manager@bienvenue.local" }
+        });
+        if (!pullRes.ok) {
+          throw new Error("Pull sync failed with status " + pullRes.status);
+        }
+
+        if (icon) icon.innerHTML = SYNC_ICONS.success;
+        if (label) label.textContent = "Synchronized!";
+
+        await loadData();
+
+        setTimeout(function(){
+          if (icon) icon.innerHTML = SYNC_ICONS.idle;
+          if (label) label.textContent = "Sync Bienvenue";
+          btnSync.disabled = false;
+        }, 2500);
+      } catch (err) {
+        console.error("Bienvenue synchronization error:", err);
+        if (icon) icon.innerHTML = SYNC_ICONS.error;
+        if (label) label.textContent = "Error";
+        setTimeout(function(){
+          if (icon) icon.innerHTML = SYNC_ICONS.idle;
+          if (label) label.textContent = "Sync Bienvenue";
+          btnSync.disabled = false;
+        }, 3000);
+      }
+    });
+  }
+
   /* ---------------- Init ---------------- */
 
   async function init(){
     try{
       await loadGristScript();
-      grist.ready({ requiredAccess: "full", name: "Espace manager" });
+      grist.ready({ requiredAccess: "full", name: "Manager Space" });
       await loadAll();
       document.getElementById("view-loading").style.display = "none";
 
@@ -800,7 +872,7 @@
       }
     }catch(err){
       document.getElementById("view-loading").innerHTML =
-        '<strong>Connexion impossible</strong>Vérifiez que ce widget a bien été ouvert depuis une page Grist, avec l\'accès complet au document autorisé.';
+        '<strong>Unable to connect</strong>Please verify that this widget is opened from a Grist document with full document access granted.';
     }
   }
   init();

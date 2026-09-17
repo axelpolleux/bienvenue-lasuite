@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Espace RH — widget Grist</title>
+<title>HR Space — Grist Widget</title>
 <style>
   @font-face{
     font-family:"Marianne"; font-weight:400; font-style:normal; font-display:swap;
@@ -37,7 +37,8 @@
   .topbar h1{ font-weight:700; font-size:26px; margin:0; letter-spacing:-0.01em; }
   .topbar .sub{ color:var(--ink-muted); margin-top:5px; font-size:13.5px; }
 
-  .btn{ border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); padding:9px 15px; border-radius:var(--radius-s); font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; font-family:inherit; }
+  .btn{ border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); padding:9px 15px; border-radius:var(--radius-s); font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; font-family:inherit; display:inline-flex; align-items:center; }
+  .actions{ display:flex; align-items:center; gap:8px; }
   .btn:hover{ border-color:var(--ink-faint); }
   .btn.primary{ background:var(--blue); border-color:var(--blue); color:#fff; }
   .btn.primary:hover{ opacity:.92; }
@@ -108,48 +109,54 @@
     table.roster tr{ padding:10px 16px; border-top:1px solid var(--line); }
     table.roster td{ border-top:none; padding:2px 0; }
   }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 0.8s linear infinite; display: inline-block; vertical-align: middle; }
 </style>
 </head>
 <body>
 <div class="shell">
 
   <div id="view-loading" class="state">
-    <strong>Connexion au document…</strong>
-    Autorisez l'accès complet si Grist vous le demande.
+    <strong>Connecting to document…</strong>
+    Please grant full access if Grist prompts you.
   </div>
 
   <div id="view-main" style="display:none">
     <div class="topbar">
       <div>
-        <p class="brand">Bienvenue à La Suite — espace RH</p>
-        <h1>Agents par service</h1>
+        <p class="brand">Bienvenue à La Suite — HR Space</p>
+        <h1>Team Members by Department</h1>
         <p class="sub" id="main-sub"></p>
       </div>
-      <button class="btn primary" id="btn-add">+ Ajouter un agent</button>
+      <div class="actions">
+        <button class="btn ghost" id="btn-sync-bienvenue" style="gap:6px;" title="Synchronize data with Bienvenue à La Suite"><span id="sync-icon" style="display:inline-flex;align-items:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg></span> <span id="sync-label">Sync Bienvenue</span></button>
+        <button class="btn primary" id="btn-add">+ Add Team Member</button>
+      </div>
     </div>
 
     <div class="add-form" id="add-form">
-      <h3>Nouvel agent</h3>
+      <h3>New Team Member</h3>
       <div class="add-grid">
-        <div><label>Nom</label><input id="af-lastname" type="text" placeholder="Ex. Roche"></div>
-        <div><label>Prénom</label><input id="af-firstname" type="text" placeholder="Ex. Yasmine"></div>
-        <div><label>Poste</label><input id="af-role" type="text" placeholder="Ex. Chargée d'études"></div>
-        <div><label>Service</label><select id="af-service"></select></div>
-        <div><label>Email</label><input id="af-email" type="text" placeholder="prenom.nom@gouv.fr"></div>
-        <div><label>Téléphone</label><input id="af-phone" type="text" placeholder="01 40 00 00 00"></div>
-        <div><label>Date d'arrivée</label><input id="af-arrival" type="date"></div>
-        <div><label>Date de départ (optionnel)</label><input id="af-departure" type="date"></div>
+        <div><label>Last Name</label><input id="af-lastname" type="text" placeholder="e.g. Smith"></div>
+        <div><label>First Name</label><input id="af-firstname" type="text" placeholder="e.g. Alex"></div>
+        <div><label>Role</label><input id="af-role" type="text" placeholder="e.g. Product Designer"></div>
+        <div><label>Department</label><select id="af-service"></select></div>
+        <div><label>Email</label><input id="af-email" type="text" placeholder="alex.smith@example.com"></div>
+        <div><label>Phone</label><input id="af-phone" type="text" placeholder="+33 1 40 00 00 00"></div>
+        <div><label>Start Date</label><input id="af-arrival" type="date"></div>
+        <div><label>End Date (optional)</label><input id="af-departure" type="date"></div>
       </div>
-      <p style="font-size:12px;color:var(--ink-faint);margin:0 0 12px;">Le template d'onboarding se choisit tout seul selon le service.</p>
+      <p style="font-size:12px;color:var(--ink-faint);margin:0 0 12px;">The onboarding template is automatically selected based on the department.</p>
       <div class="add-actions">
-        <button class="btn ghost" id="af-cancel">Annuler</button>
-        <button class="btn primary" id="af-save">Ajouter l'agent</button>
+        <button class="btn ghost" id="af-cancel">Cancel</button>
+        <button class="btn primary" id="af-save">Add Team Member</button>
       </div>
     </div>
 
     <div class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input type="text" id="search-input" placeholder="Rechercher un nom ou un poste…" aria-label="Rechercher un agent">
+      <input type="text" id="search-input" placeholder="Search by name or role…" aria-label="Search for a team member">
     </div>
 
     <div id="groups"></div>
@@ -176,7 +183,7 @@
       var s = document.createElement("script");
       s.src = "https://docs.getgrist.com/grist-plugin-api.js";
       s.onload = resolve;
-      s.onerror = function(){ reject(new Error("grist-plugin-api.js indisponible")); };
+      s.onerror = function(){ reject(new Error("grist-plugin-api.js unavailable")); };
       document.head.appendChild(s);
     });
   }
@@ -223,24 +230,32 @@
     TEMPLATES = rowsFromTable(res[4]);
   }
 
+  async function loadData(){
+    if (typeof grist !== "undefined" && grist.docApi && grist.docApi.fetchTable){
+      await loadAll();
+    }
+    renderGroups();
+  }
+  var render = renderGroups;
+
   async function saveField(memberId, field, value){
     try{
       await grist.docApi.applyUserActions([["UpdateRecord","Members", memberId, (function(){ var o={}; o[field]=value; return o; })()]]);
     }catch(err){
-      toast("Échec de l'enregistrement — réessayez");
+      toast("Failed to save — please try again");
     }
   }
 
   function renderGroups(){
     var wrap = document.getElementById("groups");
     var q = searchQuery.trim().toLowerCase();
-    document.getElementById("main-sub").textContent = MEMBERS.length + " agents au total, répartis sur " + SERVICES.length + " services";
+    document.getElementById("main-sub").textContent = MEMBERS.length + " team member" + (MEMBERS.length === 1 ? "" : "s") + " total across " + SERVICES.length + " department" + (SERVICES.length === 1 ? "" : "s");
 
     wrap.innerHTML = "";
     SERVICES.forEach(function(s){
       var members = MEMBERS.filter(function(m){ return m.Service === s.id; })
         .filter(function(m){ return !q || ((m.FirstName||"") + " " + (m.LastName||"") + " " + (m.Role||"")).toLowerCase().indexOf(q) > -1; })
-        .sort(function(a,b){ return (a.LastName||"").localeCompare(b.LastName||"", "fr"); });
+        .sort(function(a,b){ return (a.LastName||"").localeCompare(b.LastName||"", "en"); });
       if (q && !members.length) return;
 
       var group = document.createElement("details");
@@ -250,24 +265,24 @@
       var rowsHtml = members.length ? members.map(function(m){
         var pct = progressOf(m);
         return '<tr data-member="' + m.id + '">' +
-          '<td><input class="cell-input" data-field="LastName" value="' + (m.LastName||"") + '" placeholder="Nom"></td>' +
-          '<td><input class="cell-input" data-field="FirstName" value="' + (m.FirstName||"") + '" placeholder="Prénom"></td>' +
-          '<td><input class="cell-input" data-field="Role" value="' + (m.Role||"") + '" placeholder="Poste"></td>' +
+          '<td><input class="cell-input" data-field="LastName" value="' + (m.LastName||"") + '" placeholder="Last Name"></td>' +
+          '<td><input class="cell-input" data-field="FirstName" value="' + (m.FirstName||"") + '" placeholder="First Name"></td>' +
+          '<td><input class="cell-input" data-field="Role" value="' + (m.Role||"") + '" placeholder="Role"></td>' +
           '<td><input class="cell-input" data-field="Email" value="' + (m.Email||"") + '" placeholder="Email"></td>' +
-          '<td><input class="cell-input" data-field="Phone" value="' + (m.Phone||"") + '" placeholder="Téléphone"></td>' +
+          '<td><input class="cell-input" data-field="Phone" value="' + (m.Phone||"") + '" placeholder="Phone"></td>' +
           '<td><div class="prog-cell"><div class="prog-track"><div class="prog-fill" style="width:' + pct + '%"></div></div><span class="prog-pct">' + pct + '%</span></div></td>' +
-          '<td><button class="view-btn" type="button" aria-label="Voir la fiche de ' + ((m.FirstName||"")+" "+(m.LastName||"")).trim() + '"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></button></td>' +
+          '<td><button class="view-btn" type="button" aria-label="View card for ' + ((m.FirstName||"")+" "+(m.LastName||"")).trim() + '"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></button></td>' +
         '</tr>';
-      }).join("") : '<tr class="empty-row"><td colspan="7">Aucun agent dans ce service.</td></tr>';
+      }).join("") : '<tr class="empty-row"><td colspan="7">No team members in this department.</td></tr>';
 
       group.innerHTML =
         '<summary>' +
           '<div class="svc-badge" style="background:' + s.Color + '">' + s.Initials + '</div>' +
           '<h2>' + s.Name + '</h2>' +
-          '<span class="count">' + members.length + ' agent' + (members.length>1?'s':'') + '</span>' +
+          '<span class="count">' + members.length + ' member' + (members.length === 1 ? '' : 's') + '</span>' +
           '<svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>' +
         '</summary>' +
-        '<table class="roster"><thead><tr><th>Nom</th><th>Prénom</th><th>Poste</th><th>Email</th><th>Téléphone</th><th>Intégration</th><th></th></tr></thead>' +
+        '<table class="roster"><thead><tr><th>Last Name</th><th>First Name</th><th>Role</th><th>Email</th><th>Phone</th><th>Onboarding</th><th>Actions</th></tr></thead>' +
         '<tbody>' + rowsHtml + '</tbody></table>';
 
       group.querySelectorAll("tr[data-member]").forEach(function(tr){
@@ -313,8 +328,7 @@
     var service = Number(document.getElementById("af-service").value);
     var arrival = dateInputToGrist(document.getElementById("af-arrival").value) || todayUTCSeconds();
     var departure = dateInputToGrist(document.getElementById("af-departure").value);
-    if (!lastName){ toast("Le nom est obligatoire"); return; }
-    if (!service){ toast("Le service est obligatoire"); return; }
+    if (!firstName || !lastName || !service){ toast("First name, last name, and department are required"); return; }
 
     var btn = document.getElementById("af-save");
     btn.disabled = true;
@@ -323,7 +337,7 @@
         ["AddRecord", "Members", null, { LastName:lastName, FirstName:firstName, Role:role, Email:email, Phone:phone, Service:service, ArrivalDate:arrival, DepartureDate:departure }]
       ]);
       var newId = addResult.retValues[0];
-      await loadAll(); // recharge pour lire le Template résolu automatiquement par la formule (selon le service)
+      await loadAll(); // reload to read Template automatically resolved by trigger formula (based on department)
       var newMember = MEMBERS.filter(function(m){ return m.id === newId; })[0];
       var checklistActions = (newMember ? templateItems(newMember.Template) : []).map(function(item){
         return ["AddRecord", "MemberChecklist", null, { Member:newId, Item:item.id, Done:false, DoneAt:null }];
@@ -333,14 +347,70 @@
       addForm.classList.remove("open");
       ["af-lastname","af-firstname","af-role","af-email","af-phone","af-arrival","af-departure"].forEach(function(id){ document.getElementById(id).value=""; });
       renderGroups();
-      toast((firstName || lastName) + " a été ajouté·e à l'équipe");
+      toast(((firstName ? firstName + " " : "") + lastName).trim() + " has been added to the team");
     }catch(err){
-      toast("Erreur lors de l'ajout — réessayez");
+      toast("Error adding team member — please try again");
     }
     btn.disabled = false;
   });
 
-  var MONTHS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  var SYNC_ICONS = {
+    idle: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>',
+    spin: '<svg class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>',
+    success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green, #18753C)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>',
+    error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c9191e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+  };
+
+  var btnSync = document.getElementById("btn-sync-bienvenue");
+  if (btnSync){
+    btnSync.addEventListener("click", async function(){
+      var icon = document.getElementById("sync-icon");
+      var label = document.getElementById("sync-label");
+      btnSync.disabled = true;
+      if (icon) icon.innerHTML = SYNC_ICONS.spin;
+      if (label) label.textContent = "Synchronizing...";
+
+      try {
+        var pushRes = await fetch("http://localhost:8000/api/manager/sync-grist/push/", {
+          method: "POST",
+          headers: { "X-Dev-User-Email": "manager@bienvenue.local" }
+        });
+        if (!pushRes.ok) {
+          throw new Error("Push sync failed with status " + pushRes.status);
+        }
+
+        var pullRes = await fetch("http://localhost:8000/api/manager/sync-grist/pull/", {
+          method: "POST",
+          headers: { "X-Dev-User-Email": "manager@bienvenue.local" }
+        });
+        if (!pullRes.ok) {
+          throw new Error("Pull sync failed with status " + pullRes.status);
+        }
+
+        if (icon) icon.innerHTML = SYNC_ICONS.success;
+        if (label) label.textContent = "Synchronized!";
+
+        await loadData();
+
+        setTimeout(function(){
+          if (icon) icon.innerHTML = SYNC_ICONS.idle;
+          if (label) label.textContent = "Sync Bienvenue";
+          btnSync.disabled = false;
+        }, 2500);
+      } catch (err) {
+        console.error("Bienvenue synchronization error:", err);
+        if (icon) icon.innerHTML = SYNC_ICONS.error;
+        if (label) label.textContent = "Error";
+        setTimeout(function(){
+          if (icon) icon.innerHTML = SYNC_ICONS.idle;
+          if (label) label.textContent = "Sync Bienvenue";
+          btnSync.disabled = false;
+        }, 3000);
+      }
+    });
+  }
+
+  var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   var AVATAR_PALETTE = ["#5B5BD6","#B34700","#197C6A","#A32657","#3E6BC9","#7A5AF8","#B5842A"];
   function avatarColor(name){
     var h = 0;
@@ -365,16 +435,16 @@
     var pct = progressOf(m);
     var fullName = ((m.FirstName||"") + " " + (m.LastName||"")).trim() || "—";
     document.getElementById("id-card-content").innerHTML =
-      '<button class="close-btn" id="id-close" aria-label="Fermer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+      '<button class="close-btn" id="id-close" aria-label="Close"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
       '<div class="id-avatar" style="background:' + avatarColor(fullName) + '">' + initials(m.FirstName, m.LastName) + '</div>' +
       '<h2>' + fullName + '</h2>' +
-      '<div class="id-role">' + (m.Role || "Poste non renseigné") + '</div>' +
-      '<div class="id-field"><span class="k">Service</span><span class="v">' + svc.Name + '</span></div>' +
+      '<div class="id-role">' + (m.Role || "No role specified") + '</div>' +
+      '<div class="id-field"><span class="k">Department</span><span class="v">' + svc.Name + '</span></div>' +
       '<div class="id-field"><span class="k">Email</span><span class="v">' + (m.Email || "—") + '</span></div>' +
-      '<div class="id-field"><span class="k">Téléphone</span><span class="v">' + (m.Phone || "—") + '</span></div>' +
-      '<div class="id-field"><span class="k">Arrivée</span><span class="v">' + formatGristDate(m.ArrivalDate) + '</span></div>' +
-      '<div class="id-field"><span class="k">Départ</span><span class="v">' + (m.DepartureDate ? formatGristDate(m.DepartureDate) : "—") + '</span></div>' +
-      '<div class="id-progress"><div class="lbl"><span>Intégration</span><span>' + pct + '%</span></div>' +
+      '<div class="id-field"><span class="k">Phone</span><span class="v">' + (m.Phone || "—") + '</span></div>' +
+      '<div class="id-field"><span class="k">Arrival</span><span class="v">' + formatGristDate(m.ArrivalDate) + '</span></div>' +
+      '<div class="id-field"><span class="k">Departure</span><span class="v">' + (m.DepartureDate ? formatGristDate(m.DepartureDate) : "—") + '</span></div>' +
+      '<div class="id-progress"><div class="lbl"><span>Onboarding</span><span>' + pct + '%</span></div>' +
         '<div class="prog-track"><div class="prog-fill" style="width:' + pct + '%"></div></div></div>';
     document.getElementById("id-close").addEventListener("click", closeIdCard);
     idBackdrop.classList.add("open");
@@ -386,14 +456,14 @@
   async function init(){
     try{
       await loadGristScript();
-      grist.ready({ requiredAccess: "full", name: "Espace RH" });
+      grist.ready({ requiredAccess: "full", name: "HR Space" });
       await loadAll();
       document.getElementById("view-loading").style.display = "none";
       document.getElementById("view-main").style.display = "block";
       renderGroups();
     }catch(err){
       document.getElementById("view-loading").innerHTML =
-        '<strong>Connexion impossible</strong>Vérifiez que ce widget a bien été ouvert depuis une page Grist, avec l\'accès complet au document autorisé.';
+        '<strong>Unable to connect</strong>Please verify that this widget is opened from a Grist document with full document access granted.';
     }
   }
   init();
