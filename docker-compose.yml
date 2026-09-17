@@ -50,7 +50,7 @@ services:
       # recognized: grist" otherwise).
       GRIST_SINGLE_ORG: docs-5
     volumes:
-      - grist_data:/persist
+      - ./grist-host/persist:/persist
     ports:
       - "8585:8484"
 
@@ -77,11 +77,10 @@ services:
       OIDC_OP_TOKEN_ENDPOINT: http://keycloak:8080/realms/bienvenue-lasuite/protocol/openid-connect/token
       OIDC_OP_USER_ENDPOINT: http://keycloak:8080/realms/bienvenue-lasuite/protocol/openid-connect/userinfo
       OIDC_OP_JWKS_ENDPOINT: http://keycloak:8080/realms/bienvenue-lasuite/protocol/openid-connect/certs
-      # Team-shared Grist cloud doc (the manager/RH-facing one) — self-hosted
-      # "grist" service below stays available as an offline/dev fallback,
-      # just not the default anymore.
-      GRIST_BASE_URL: https://docs.getgrist.com
-      GRIST_DOC_ID: etL2XCsVr7i2zJ8peqLPZt
+      # Self-hosted Grist doc with custom widgets (team tracking)
+      GRIST_BASE_URL: http://grist:8484
+      GRIST_DOC_ID: kcyTujZCa1cdCqifiRhL5w
+      GRIST_API_KEY: grist_api_key_manager
     depends_on:
       postgresql:
         condition: service_healthy
@@ -92,7 +91,7 @@ services:
     build: ./frontend
     environment:
       - BACKEND_URL=http://backend:8000
-      - VITE_GRIST_URL=https://docs.getgrist.com/etL2XCsVr7i2
+      - VITE_GRIST_URL=http://localhost:8585/doc/kcyTujZCa1cdCqifiRhL5w
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -103,4 +102,3 @@ services:
 
 volumes:
   postgresql_data:
-  grist_data:

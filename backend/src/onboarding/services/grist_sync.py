@@ -97,14 +97,27 @@ def sync_todo_items(records):
         if template is None:
             skipped += 1
             continue
-        validation_type = fields.get("ValidationType") or ValidationTypeChoices.MANUAL
+        kind = (fields.get("Kind") or "").upper()
+        label = fields.get("Label") or ""
+        if kind == "AUTO":
+            validation_type = (
+                ValidationTypeChoices.SIGNATURE
+                if "signature" in label.lower()
+                else ValidationTypeChoices.API_CHECK
+            )
+        elif kind == "MANUEL":
+            validation_type = ValidationTypeChoices.MANUAL
+        else:
+            validation_type = fields.get("ValidationType") or ValidationTypeChoices.MANUAL
+
         if validation_type not in ValidationTypeChoices.values:
             validation_type = ValidationTypeChoices.MANUAL
+
         TodoItem.objects.update_or_create(
             grist_row_id=str(record["id"]),
             defaults={
                 "template": template,
-                "label": fields.get("Label") or "",
+                "label": label,
                 "description": fields.get("Description") or "",
                 "service_link": fields.get("ServiceLink") or None,
                 "doc_url": fields.get("DocUrl") or None,
@@ -203,7 +216,10 @@ def sync_table(table_name):
     sync_fn = _SYNC_FUNCTIONS.get(table_name)
     if sync_fn is None:
         raise ValueError(f"Unknown Grist table: {table_name}")
-    records = client.list_records(table_name)
+    if table_name == "TodoItems":
+        records = client.list_records_safe("ChecklistItems") or client.list_records_safe("TodoItems")
+    else:
+        records = client.list_records_safe(table_name)
     return sync_fn(records)
 
 

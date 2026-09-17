@@ -24,6 +24,15 @@ class GristClient:
         response.raise_for_status()
         return response.json()["records"]
 
+    def list_records_safe(self, table):
+        """Return table records, or empty list [] if table does not exist."""
+        try:
+            return self.list_records(table)
+        except requests.HTTPError as exc:
+            if exc.response is not None and exc.response.status_code == 404:
+                return []
+            raise
+
     def create_records(self, table, records):
         """Create records. `records` is a list of {field: value} dicts."""
         payload = {"records": [{"fields": fields} for fields in records]}

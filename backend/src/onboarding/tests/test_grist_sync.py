@@ -66,3 +66,61 @@ class SyncMembersTest(TestCase):
         synced = sync_members(records)
         self.assertEqual(synced, 0)
         self.assertFalse(Agent.objects.filter(name="No Email").exists())
+
+
+class SyncTodoItemsTest(TestCase):
+    """Test suite for syncing todo items with Kind and ValidationType mappings."""
+
+    def setUp(self):
+        self.template = Template.objects.create(
+            name="Onboarding Numérique", grist_row_id="20"
+        )
+
+    def test_sync_todo_items_with_kind_mapping(self):
+        from src.onboarding.models import TodoItem, ValidationTypeChoices
+        from src.onboarding.services.grist_sync import sync_todo_items
+
+        records = [
+            {
+                "id": 101,
+                "fields": {
+                    "Label": "Configurer messagerie",
+                    "Description": "Configuration mail",
+                    "Kind": "MANUEL",
+                    "Order": 1,
+                    "Template": 20,
+                },
+            },
+            {
+                "id": 102,
+                "fields": {
+                    "Label": "Valider la signature email",
+                    "Description": "Génération de signature",
+                    "Kind": "AUTO",
+                    "Order": 2,
+                    "Template": 20,
+                },
+            },
+            {
+                "id": 103,
+                "fields": {
+                    "Label": "Activer espace Fichiers",
+                    "Description": "Vérification Fichiers",
+                    "Kind": "AUTO",
+                    "Order": 3,
+                    "Template": 20,
+                },
+            },
+        ]
+        synced = sync_todo_items(records)
+        self.assertEqual(synced, 3)
+
+        manual_item = TodoItem.objects.get(grist_row_id="101")
+        self.assertEqual(manual_item.validation_type, ValidationTypeChoices.MANUAL)
+
+        sig_item = TodoItem.objects.get(grist_row_id="102")
+        self.assertEqual(sig_item.validation_type, ValidationTypeChoices.SIGNATURE)
+
+        auto_item = TodoItem.objects.get(grist_row_id="103")
+        self.assertEqual(auto_item.validation_type, ValidationTypeChoices.API_CHECK)
+
