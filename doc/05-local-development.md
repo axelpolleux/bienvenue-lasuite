@@ -30,11 +30,13 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000
 # PostgreSQL Connection
 DATABASE_URL=postgres://bienvenue:bienvenue@localhost:25432/bienvenue
 
-# Grist Integration
-GRIST_API_URL=https://grist.numerique.gouv.fr/api
+# Grist Integration — pulled on demand via POST /api/manager/sync-grist/,
+# no webhook/secret needed. Points at the team's cloud doc by default
+# (docker-compose.yml); the self-hosted "grist" service is an offline
+# fallback only, not the primary target.
+GRIST_BASE_URL=https://docs.getgrist.com
 GRIST_DOC_ID=your-grist-doc-id
 GRIST_API_KEY=your-grist-api-key
-GRIST_WEBHOOK_SECRET=your-grist-webhook-secret
 
 # La Suite Service Verification (Defaults to built-in mock in dev)
 LA_SUITE_FICHIERS_URL=http://localhost:8000/api/mock-suite/fichiers/users/{email}/
@@ -121,17 +123,16 @@ curl -X POST http://localhost:8000/api/todos/<TODO_UUID>/verify/ \
   -H "X-Dev-User-Email: alex.martin@gouv.fr" | jq
 ```
 
-### 6.2 Testing Grist Webhook Sync
-Simulate a Grist webhook notification triggering an upsert:
+### 6.2 Testing Grist Sync
+Manager-triggered pull, no webhook — either via the API or the CLI:
 
 ```bash
-curl -X POST http://localhost:8000/api/webhooks/grist/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "docId": "doc-demo-123",
-    "tableId": "Templates",
-    "action": "update"
-  }' | jq
+# Via the API (requires a manager account)
+curl -X POST http://localhost:8000/api/manager/sync-grist/ \
+  -H "X-Dev-User-Email: camille.dupont@gouv.fr" | jq
+
+# Or via the management command
+docker compose exec backend python manage.py sync_grist
 ```
 
 ### 6.3 Switching Roles in Local Dev

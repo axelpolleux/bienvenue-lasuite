@@ -29,7 +29,7 @@ erDiagram
     TEMPLATE {
         uuid id PK
         string name "template title, e.g. Core DSI"
-        string grist_row_id UK "source row in Grist for webhook upsert"
+        string grist_row_id UK "source row in Grist for pull-sync upsert"
         text email_signature "markdown or html signature template"
         datetime created_at
         datetime updated_at

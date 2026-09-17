@@ -219,6 +219,14 @@ LOGIN_REDIRECT_URL_FAILURE = env(
 LOGOUT_REDIRECT_URL = env("LOGOUT_REDIRECT_URL", default="http://localhost:3000/")
 ALLOW_LOGOUT_GET_METHOD = True
 
+
+# Grist (self-hosted — see docker-compose.yml). Pulled on demand via
+# POST /api/manager/sync-grist/ (manager-triggered "Save"), no webhook.
+
+GRIST_BASE_URL = env("GRIST_BASE_URL", default="http://localhost:8585")
+GRIST_API_KEY = env("GRIST_API_KEY", default="")
+GRIST_DOC_ID = env("GRIST_DOC_ID", default="")
+
 # Silence expected 4xx HTTP logs from test suite to keep output clean
 if "test" in sys.argv:
     LOGGING = {

@@ -1,7 +1,11 @@
 """URL configuration for src.onboarding endpoints."""
 
 from django.urls import path
-from src.onboarding.views.manager import AssignTemplateView, ManagerOverviewView
+from src.onboarding.views.manager import (
+    AssignTemplateView,
+    ManagerOverviewView,
+    SyncGristView,
+)
 from src.onboarding.views.mock_suite import mock_fichiers_user_view
 from src.onboarding.views.onboarding import (
     AcceptSignatureView,
@@ -22,6 +26,11 @@ urlpatterns = [
         "agents/<uuid:pk>/assign-template/",
         AssignTemplateView.as_view(),
         name="agent-assign-template",
+    ),
+    path(
+        "manager/sync-grist/",
+        SyncGristView.as_view(),
+        name="manager-sync-grist",
     ),
     # Local mock testing endpoints
     path(

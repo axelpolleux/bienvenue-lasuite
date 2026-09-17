@@ -26,12 +26,15 @@ backend/
 │       ├── views/
 │       │   ├── __init__.py
 │       │   ├── onboarding.py  # Agent endpoints (me, verify, toggle, signature)
-│       │   ├── manager.py     # Manager overview & assignment endpoints
-│       │   ├── webhooks.py    # Grist webhook receiver
+│       │   ├── manager.py     # Manager overview, assignment & sync-grist endpoints
 │       │   └── mock_suite.py  # Local testing mock for Fichiers service
+│       ├── management/commands/
+│       │   ├── sync_grist.py                # CLI equivalent of POST /api/manager/sync-grist/
+│       │   └── mirror_grist_to_selfhosted.py # Snapshot the cloud doc into our self-hosted one
 │       ├── services/
 │       │   ├── __init__.py
-│       │   ├── grist_sync.py  # Grist REST API client & transaction upsert
+│       │   ├── grist_client.py # Thin Grist REST API wrapper (list/create/update/delete)
+│       │   ├── grist_sync.py   # Upserts Postgres from Grist records, table by table
 │       │   └── suite_verifier.py # HTTP client verifying user existence in Fichiers
 │       ├── authentication.py  # Keycloak JWT validator & Dev Auth bypass
 │       └── urls.py            # /api/ routes
@@ -236,19 +239,17 @@ Assigns or updates the onboarding template for a new agent.
 
 ---
 
-### 3.3 Grist Synchronization Webhook
+### 3.3 Grist Sync (manager-triggered pull, no webhook)
 
-#### `POST /api/webhooks/grist/`
-Triggered by Grist whenever a template, task, or document row is modified.
+#### `POST /api/manager/sync-grist/`
+Pulls all 6 Grist tables and upserts Postgres. Requires `IsManager`.
 
-- **Security & Authentication**:
-  - Incoming webhook requests must supply the pre-shared secret matching `GRIST_WEBHOOK_SECRET` in the `X-Grist-Webhook-Token` header (or `?secret=<token>` parameter).
-  - Unauthenticated requests are rejected immediately with `401 Unauthorized`.
+- **Security & Authentication**: standard `IsAuthenticated` + `IsManager` — no separate secret, since this is an authenticated app action, not an unauthenticated inbound webhook.
 - **Processing Logic**:
-  - Invokes `grist_sync.sync_from_grist(payload)`.
-  - Executes inside a PostgreSQL atomic transaction (`transaction.atomic()`).
-  - Fetches updated records from Grist REST API (enforcing a strict 10s timeout).
-  - Performs non-destructive in-place upserts matched on `grist_row_id` for `templates`, `todo_items`, `colleagues`, `documents`, and `trainings`, guaranteeing that `agent_todo_statuses` records are preserved and never accidentally purged by cascade deletes.
+  - Invokes `grist_sync.sync_all()`, which calls `sync_table()` per table via the Grist REST API.
+  - Performs non-destructive upserts matched on `grist_row_id` for `templates`, `members` (provisions/updates `Agent.assigned_template`), `todo_items`, `colleagues`, `documents`, and `trainings` — `agent_todo_statuses` are never touched, so completion state survives a re-sync.
+  - Returns `{"synced": {table: row_count, ...}}`.
+- **CLI equivalent**: `python manage.py sync_grist` runs the same `sync_all()` outside the API, useful for local testing or CI.
   - Automatically rolls back the entire transaction if network errors or database constraints fail.
 
 ---

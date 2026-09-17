@@ -1,4 +1,5 @@
 import logo from "../../assets/bienvenue-logo.webp";
+import { GRIST_URL } from "../../lib/grist";
 import { buildNavItems } from "../../lib/navigation";
 import { NavIcon } from "./NavIcon";
 import type { Agent, ScreenId } from "../../types";
@@ -51,6 +52,9 @@ export function Sidebar({ agent, activeScreen, remainingSteps, onNavigate, onSig
       <div className="bn-sidebar__account">
         <div className="bn-sidebar__account-name">{agent.name}</div>
         <div className="bn-sidebar__account-email">{agent.email}</div>
+        <a href={GRIST_URL} target="_blank" rel="noreferrer" className="bn-sidebar__signout">
+          Open Grist
+        </a>
         <button type="button" className="bn-sidebar__signout" onClick={onSignOut}>
           Sign out
         </button>
