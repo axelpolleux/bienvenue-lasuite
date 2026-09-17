@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace RH — widget Grist</title>
+<style>
+  @font-face{
+    font-family:"Marianne"; font-weight:400; font-style:normal; font-display:swap;
+    src:url("https://cdn.jsdelivr.net/npm/@gouvfr-lasuite/ui-components@1.2.0/dist/assets/fonts/Marianne/Marianne-Regular.woff2") format("woff2");
+  }
+  @font-face{
+    font-family:"Marianne"; font-weight:700; font-style:normal; font-display:swap;
+    src:url("https://cdn.jsdelivr.net/npm/@gouvfr-lasuite/ui-components@1.2.0/dist/assets/fonts/Marianne/Marianne-Bold.woff2") format("woff2");
+  }
+  :root{
+    --paper:#F6F6F6; --surface:#FFFFFF; --ink:#161616; --ink-muted:#666666; --ink-faint:#929292;
+    --line:#DDDDDD; --line-strong:#CECECE;
+    --blue:#000091; --blue-soft:#ECECFE; --blue-ink:#000091;
+    --green:#18753C; --grey-soft:#EEEEEE;
+    --radius-s:4px; --radius-m:8px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#161616; --surface:#1E1E1E; --ink:#F6F6F6; --ink-muted:#B1B1B1; --ink-faint:#8A8980;
+      --line:#3A3A3A; --line-strong:#454339;
+      --blue:#8585F6; --blue-soft:#21213F; --blue-ink:#C6C6FE;
+      --green:#27A658; --grey-soft:#2C2C2E;
+    }
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ background:var(--paper); color:var(--ink); font-family:"Marianne", arial, sans-serif; font-size:15px; line-height:1.5; }
+  .shell{ max-width:1100px; margin:0 auto; padding:22px 22px 70px; }
+  .topbar{ margin-bottom:16px; display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .topbar .brand{ font-size:12px; color:var(--ink-faint); margin:0 0 5px; }
+  .topbar h1{ font-weight:700; font-size:26px; margin:0; letter-spacing:-0.01em; }
+  .topbar .sub{ color:var(--ink-muted); margin-top:5px; font-size:13.5px; }
+
+  .btn{ border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); padding:9px 15px; border-radius:var(--radius-s); font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; font-family:inherit; }
+  .btn:hover{ border-color:var(--ink-faint); }
+  .btn.primary{ background:var(--blue); border-color:var(--blue); color:#fff; }
+  .btn.primary:hover{ opacity:.92; }
+  .btn.ghost{ border-color:transparent; background:transparent; color:var(--ink-muted); }
+  .btn:disabled{ opacity:.5; cursor:default; }
+
+  .add-form{ border:1px solid var(--line); border-radius:var(--radius-m); background:var(--surface); padding:18px; margin-bottom:16px; display:none; }
+  .add-form.open{ display:block; }
+  .add-form h3{ margin:0 0 12px; font-size:14.5px; }
+  .add-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .add-grid label{ display:block; font-size:11.5px; color:var(--ink-faint); margin-bottom:4px; font-weight:600; }
+  .add-grid input, .add-grid select{ width:100%; padding:8px 10px; border:1px solid var(--line-strong); border-radius:var(--radius-s); background:var(--paper); color:var(--ink); font-size:13px; font-family:inherit; }
+  .add-actions{ display:flex; gap:8px; justify-content:flex-end; }
+
+  .search{ position:relative; margin-bottom:16px; }
+  .search input{ width:100%; padding:9px 13px 9px 36px; border:1px solid var(--line-strong); border-radius:var(--radius-s); background:var(--surface); color:var(--ink); font-size:14px; font-family:inherit; }
+  .search svg{ position:absolute; left:11px; top:50%; transform:translateY(-50%); width:15px; height:15px; stroke:var(--ink-faint); }
+
+  .state{ padding:40px 20px; text-align:center; color:var(--ink-muted); }
+  .state strong{ display:block; color:var(--ink); font-size:15px; margin-bottom:6px; font-weight:600; }
+
+  .svc-group{ border:1px solid var(--line); border-radius:var(--radius-m); background:var(--surface); margin-bottom:12px; overflow:hidden; }
+  .svc-group summary{ list-style:none; cursor:pointer; padding:13px 16px; display:flex; align-items:center; gap:11px; user-select:none; }
+  .svc-group summary::-webkit-details-marker{ display:none; }
+  .svc-group summary .chev{ margin-left:auto; color:var(--ink-faint); transition:transform .15s ease; flex:none; }
+  .svc-group[open] summary .chev{ transform:rotate(90deg); }
+  .svc-badge{ width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:10.5px; font-weight:700; color:#fff; flex:none; }
+  .svc-group summary h2{ margin:0; font-size:14.5px; font-weight:700; }
+  .svc-group summary .count{ font-size:11.5px; color:var(--ink-faint); background:var(--grey-soft); padding:3px 9px; border-radius:999px; font-weight:600; }
+
+  table.roster{ width:100%; border-collapse:collapse; }
+  table.roster th{ text-align:left; font-size:10.5px; color:var(--ink-faint); font-weight:600; padding:7px 16px; border-top:1px solid var(--line); background:var(--paper); }
+  table.roster td{ padding:6px 16px; font-size:13.2px; border-top:1px solid var(--line); vertical-align:middle; }
+  table.roster tr.empty-row td{ text-align:center; color:var(--ink-faint); padding:16px; }
+  .cell-input{ width:100%; border:1px solid transparent; background:transparent; color:var(--ink); font-size:13.2px; font-family:inherit; padding:5px 6px; border-radius:var(--radius-s); }
+  .cell-input:hover{ border-color:var(--line-strong); }
+  .cell-input:focus{ border-color:var(--blue); outline:none; background:var(--surface); }
+  select.cell-input{ cursor:pointer; }
+  .prog-cell{ display:flex; align-items:center; gap:7px; min-width:120px; }
+  .prog-track{ flex:1; height:6px; background:var(--grey-soft); border-radius:999px; overflow:hidden; }
+  .prog-fill{ height:100%; border-radius:999px; background:var(--green); }
+  .prog-pct{ font-size:11.5px; font-weight:700; color:var(--ink-muted); width:32px; text-align:right; flex:none; }
+
+  .view-btn{ border:1px solid var(--line-strong); background:var(--surface); color:var(--ink-muted); width:28px; height:28px; border-radius:var(--radius-s); cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .view-btn:hover{ border-color:var(--blue); color:var(--blue); }
+
+  .backdrop{ position:fixed; inset:0; background:rgba(20,20,18,0.45); display:none; align-items:center; justify-content:center; z-index:30; padding:20px; }
+  .backdrop.open{ display:flex; }
+  .id-card{ background:var(--surface); border-radius:var(--radius-m); max-width:380px; width:100%; padding:24px; position:relative; }
+  .id-card .close-btn{ position:absolute; top:12px; right:12px; border:none; background:transparent; color:var(--ink-faint); cursor:pointer; width:28px; height:28px; border-radius:var(--radius-s); display:flex; align-items:center; justify-content:center; }
+  .id-card .close-btn:hover{ background:var(--grey-soft); color:var(--ink); }
+  .id-avatar{ width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; color:#fff; margin-bottom:12px; }
+  .id-card h2{ margin:0 0 2px; font-size:19px; font-weight:700; }
+  .id-role{ color:var(--ink-muted); font-size:13.5px; margin-bottom:14px; }
+  .id-field{ display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-top:1px solid var(--line); font-size:13px; }
+  .id-field:first-of-type{ border-top:none; }
+  .id-field .k{ color:var(--ink-faint); }
+  .id-field .v{ font-weight:600; text-align:right; }
+  .id-progress{ margin-top:14px; }
+  .id-progress .lbl{ display:flex; justify-content:space-between; font-size:12px; color:var(--ink-muted); margin-bottom:6px; }
+
+  .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(10px); background:var(--ink); color:var(--paper); padding:10px 16px; border-radius:var(--radius-s); font-size:13px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; z-index:20; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width: 700px){
+    table.roster thead{ display:none; }
+    table.roster, table.roster tbody, table.roster tr, table.roster td{ display:block; width:100%; }
+    table.roster tr{ padding:10px 16px; border-top:1px solid var(--line); }
+    table.roster td{ border-top:none; padding:2px 0; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div id="view-loading" class="state">
+    <strong>Connexion au document…</strong>
+    Autorisez l'accès complet si Grist vous le demande.
+  </div>
+
+  <div id="view-main" style="display:none">
+    <div class="topbar">
+      <div>
+        <p class="brand">Bienvenue à La Suite — espace RH</p>
+        <h1>Agents par service</h1>
+        <p class="sub" id="main-sub"></p>
+      </div>
+      <button class="btn primary" id="btn-add">+ Ajouter un agent</button>
+    </div>
+
+    <div class="add-form" id="add-form">
+      <h3>Nouvel agent</h3>
+      <div class="add-grid">
+        <div><label>Nom</label><input id="af-lastname" type="text" placeholder="Ex. Roche"></div>
+        <div><label>Prénom</label><input id="af-firstname" type="text" placeholder="Ex. Yasmine"></div>
+        <div><label>Poste</label><input id="af-role" type="text" placeholder="Ex. Chargée d'études"></div>
+        <div><label>Service</label><select id="af-service"></select></div>
+        <div><label>Email</label><input id="af-email" type="text" placeholder="prenom.nom@gouv.fr"></div>
+        <div><label>Téléphone</label><input id="af-phone" type="text" placeholder="01 40 00 00 00"></div>
+        <div><label>Date d'arrivée</label><input id="af-arrival" type="date"></div>
+        <div><label>Date de départ (optionnel)</label><input id="af-departure" type="date"></div>
+      </div>
+      <p style="font-size:12px;color:var(--ink-faint);margin:0 0 12px;">Le template d'onboarding se choisit tout seul selon le service.</p>
+      <div class="add-actions">
+        <button class="btn ghost" id="af-cancel">Annuler</button>
+        <button class="btn primary" id="af-save">Ajouter l'agent</button>
+      </div>
+    </div>
+
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="search-input" placeholder="Rechercher un nom ou un poste…" aria-label="Rechercher un agent">
+    </div>
+
+    <div id="groups"></div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+<div class="backdrop" id="id-backdrop">
+  <div class="id-card" id="id-card-content"></div>
+</div>
+
+<script>
+(function(){
+
+  function toast(msg){
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function(){ t.classList.remove("show"); }, 2200);
+  }
+  function loadGristScript(){
+    return new Promise(function(resolve, reject){
+      var s = document.createElement("script");
+      s.src = "https://docs.getgrist.com/grist-plugin-api.js";
+      s.onload = resolve;
+      s.onerror = function(){ reject(new Error("grist-plugin-api.js indisponible")); };
+      document.head.appendChild(s);
+    });
+  }
+  function rowsFromTable(t){
+    var ids = t.id, rows = [];
+    for (var i=0;i<ids.length;i++){
+      var row = { id: ids[i] };
+      for (var col in t){ if (col !== "id") row[col] = t[col][i]; }
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  var SERVICES = [], MEMBERS = [], ITEMS = [], MC = [], TEMPLATES = [];
+  var searchQuery = "";
+
+  function templateItems(templateId){
+    return ITEMS.filter(function(i){ return i.Template === templateId; });
+  }
+  function progressOf(member){
+    var items = templateItems(member.Template);
+    var rows = MC.filter(function(r){ return r.Member === member.id; });
+    var custom = rows.filter(function(r){ return !r.Item && r.CustomLabel; });
+    var total = items.length + custom.length;
+    var done = items.filter(function(item){
+      var row = rows.filter(function(r){ return r.Item === item.id; })[0];
+      return row && row.Done;
+    }).length + custom.filter(function(r){ return r.Done; }).length;
+    return total ? Math.round(done/total*100) : 0;
+  }
+
+  async function loadAll(){
+    var res = await Promise.all([
+      grist.docApi.fetchTable("Services"),
+      grist.docApi.fetchTable("Members"),
+      grist.docApi.fetchTable("ChecklistItems"),
+      grist.docApi.fetchTable("MemberChecklist"),
+      grist.docApi.fetchTable("Templates")
+    ]);
+    SERVICES = rowsFromTable(res[0]);
+    MEMBERS = rowsFromTable(res[1]);
+    ITEMS = rowsFromTable(res[2]);
+    MC = rowsFromTable(res[3]);
+    TEMPLATES = rowsFromTable(res[4]);
+  }
+
+  async function saveField(memberId, field, value){
+    try{
+      await grist.docApi.applyUserActions([["UpdateRecord","Members", memberId, (function(){ var o={}; o[field]=value; return o; })()]]);
+    }catch(err){
+      toast("Échec de l'enregistrement — réessayez");
+    }
+  }
+
+  function renderGroups(){
+    var wrap = document.getElementById("groups");
+    var q = searchQuery.trim().toLowerCase();
+    document.getElementById("main-sub").textContent = MEMBERS.length + " agents au total, répartis sur " + SERVICES.length + " services";
+
+    wrap.innerHTML = "";
+    SERVICES.forEach(function(s){
+      var members = MEMBERS.filter(function(m){ return m.Service === s.id; })
+        .filter(function(m){ return !q || ((m.FirstName||"") + " " + (m.LastName||"") + " " + (m.Role||"")).toLowerCase().indexOf(q) > -1; })
+        .sort(function(a,b){ return (a.LastName||"").localeCompare(b.LastName||"", "fr"); });
+      if (q && !members.length) return;
+
+      var group = document.createElement("details");
+      group.className = "svc-group";
+      group.open = true;
+
+      var rowsHtml = members.length ? members.map(function(m){
+        var pct = progressOf(m);
+        return '<tr data-member="' + m.id + '">' +
+          '<td><input class="cell-input" data-field="LastName" value="' + (m.LastName||"") + '" placeholder="Nom"></td>' +
+          '<td><input class="cell-input" data-field="FirstName" value="' + (m.FirstName||"") + '" placeholder="Prénom"></td>' +
+          '<td><input class="cell-input" data-field="Role" value="' + (m.Role||"") + '" placeholder="Poste"></td>' +
+          '<td><input class="cell-input" data-field="Email" value="' + (m.Email||"") + '" placeholder="Email"></td>' +
+          '<td><input class="cell-input" data-field="Phone" value="' + (m.Phone||"") + '" placeholder="Téléphone"></td>' +
+          '<td><div class="prog-cell"><div class="prog-track"><div class="prog-fill" style="width:' + pct + '%"></div></div><span class="prog-pct">' + pct + '%</span></div></td>' +
+          '<td><button class="view-btn" type="button" aria-label="Voir la fiche de ' + ((m.FirstName||"")+" "+(m.LastName||"")).trim() + '"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></button></td>' +
+        '</tr>';
+      }).join("") : '<tr class="empty-row"><td colspan="7">Aucun agent dans ce service.</td></tr>';
+
+      group.innerHTML =
+        '<summary>' +
+          '<div class="svc-badge" style="background:' + s.Color + '">' + s.Initials + '</div>' +
+          '<h2>' + s.Name + '</h2>' +
+          '<span class="count">' + members.length + ' agent' + (members.length>1?'s':'') + '</span>' +
+          '<svg class="chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>' +
+        '</summary>' +
+        '<table class="roster"><thead><tr><th>Nom</th><th>Prénom</th><th>Poste</th><th>Email</th><th>Téléphone</th><th>Intégration</th><th></th></tr></thead>' +
+        '<tbody>' + rowsHtml + '</tbody></table>';
+
+      group.querySelectorAll("tr[data-member]").forEach(function(tr){
+        var memberId = Number(tr.getAttribute("data-member"));
+        tr.querySelectorAll("input.cell-input").forEach(function(input){
+          input.addEventListener("change", function(){
+            saveField(memberId, input.getAttribute("data-field"), input.value.trim());
+          });
+        });
+        var viewBtn = tr.querySelector(".view-btn");
+        viewBtn.addEventListener("click", function(){ openIdCard(memberId); });
+      });
+
+      wrap.appendChild(group);
+    });
+  }
+  document.getElementById("search-input").addEventListener("input", function(e){ searchQuery = e.target.value; renderGroups(); });
+
+  function todayUTCSeconds(){
+    var n = new Date();
+    return Math.floor(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / 1000);
+  }
+  function dateInputToGrist(val){
+    if (!val) return null;
+    var parts = val.split("-").map(Number);
+    return Math.floor(Date.UTC(parts[0], parts[1]-1, parts[2]) / 1000);
+  }
+
+  var addForm = document.getElementById("add-form");
+  document.getElementById("btn-add").addEventListener("click", function(){
+    var sel = document.getElementById("af-service");
+    sel.innerHTML = SERVICES.map(function(s){ return '<option value="' + s.id + '">' + s.Name + '</option>'; }).join("");
+    window.scrollTo(0,0);
+    addForm.classList.add("open");
+  });
+  document.getElementById("af-cancel").addEventListener("click", function(){ addForm.classList.remove("open"); });
+  document.getElementById("af-save").addEventListener("click", async function(){
+    var lastName = document.getElementById("af-lastname").value.trim();
+    var firstName = document.getElementById("af-firstname").value.trim();
+    var role = document.getElementById("af-role").value.trim();
+    var email = document.getElementById("af-email").value.trim();
+    var phone = document.getElementById("af-phone").value.trim();
+    var service = Number(document.getElementById("af-service").value);
+    var arrival = dateInputToGrist(document.getElementById("af-arrival").value) || todayUTCSeconds();
+    var departure = dateInputToGrist(document.getElementById("af-departure").value);
+    if (!lastName){ toast("Le nom est obligatoire"); return; }
+    if (!service){ toast("Le service est obligatoire"); return; }
+
+    var btn = document.getElementById("af-save");
+    btn.disabled = true;
+    try{
+      var addResult = await grist.docApi.applyUserActions([
+        ["AddRecord", "Members", null, { LastName:lastName, FirstName:firstName, Role:role, Email:email, Phone:phone, Service:service, ArrivalDate:arrival, DepartureDate:departure }]
+      ]);
+      var newId = addResult.retValues[0];
+      await loadAll(); // recharge pour lire le Template résolu automatiquement par la formule (selon le service)
+      var newMember = MEMBERS.filter(function(m){ return m.id === newId; })[0];
+      var checklistActions = (newMember ? templateItems(newMember.Template) : []).map(function(item){
+        return ["AddRecord", "MemberChecklist", null, { Member:newId, Item:item.id, Done:false, DoneAt:null }];
+      });
+      if (checklistActions.length) await grist.docApi.applyUserActions(checklistActions);
+      await loadAll();
+      addForm.classList.remove("open");
+      ["af-lastname","af-firstname","af-role","af-email","af-phone","af-arrival","af-departure"].forEach(function(id){ document.getElementById(id).value=""; });
+      renderGroups();
+      toast((firstName || lastName) + " a été ajouté·e à l'équipe");
+    }catch(err){
+      toast("Erreur lors de l'ajout — réessayez");
+    }
+    btn.disabled = false;
+  });
+
+  var MONTHS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  var AVATAR_PALETTE = ["#5B5BD6","#B34700","#197C6A","#A32657","#3E6BC9","#7A5AF8","#B5842A"];
+  function avatarColor(name){
+    var h = 0;
+    for (var i=0;i<(name||"").length;i++) h = (h*31 + name.charCodeAt(i)) >>> 0;
+    return AVATAR_PALETTE[h % AVATAR_PALETTE.length];
+  }
+  function initials(first, last){
+    return ((first||"")[0]||"") .toUpperCase() + ((last||"")[0]||"").toUpperCase() || "?";
+  }
+  function formatGristDate(sec){
+    if (sec === null || sec === undefined) return "—";
+    var d = new Date(sec * 1000);
+    return d.getUTCDate() + " " + MONTHS[d.getUTCMonth()] + " " + d.getUTCFullYear();
+  }
+  function serviceById(id){ return SERVICES.filter(function(s){ return s.id === id; })[0]; }
+
+  var idBackdrop = document.getElementById("id-backdrop");
+  function openIdCard(memberId){
+    var m = MEMBERS.filter(function(x){ return x.id === memberId; })[0];
+    if (!m) return;
+    var svc = serviceById(m.Service) || { Name:"—", Initials:"?", Color:"#9C9B93" };
+    var pct = progressOf(m);
+    var fullName = ((m.FirstName||"") + " " + (m.LastName||"")).trim() || "—";
+    document.getElementById("id-card-content").innerHTML =
+      '<button class="close-btn" id="id-close" aria-label="Fermer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+      '<div class="id-avatar" style="background:' + avatarColor(fullName) + '">' + initials(m.FirstName, m.LastName) + '</div>' +
+      '<h2>' + fullName + '</h2>' +
+      '<div class="id-role">' + (m.Role || "Poste non renseigné") + '</div>' +
+      '<div class="id-field"><span class="k">Service</span><span class="v">' + svc.Name + '</span></div>' +
+      '<div class="id-field"><span class="k">Email</span><span class="v">' + (m.Email || "—") + '</span></div>' +
+      '<div class="id-field"><span class="k">Téléphone</span><span class="v">' + (m.Phone || "—") + '</span></div>' +
+      '<div class="id-field"><span class="k">Arrivée</span><span class="v">' + formatGristDate(m.ArrivalDate) + '</span></div>' +
+      '<div class="id-field"><span class="k">Départ</span><span class="v">' + (m.DepartureDate ? formatGristDate(m.DepartureDate) : "—") + '</span></div>' +
+      '<div class="id-progress"><div class="lbl"><span>Intégration</span><span>' + pct + '%</span></div>' +
+        '<div class="prog-track"><div class="prog-fill" style="width:' + pct + '%"></div></div></div>';
+    document.getElementById("id-close").addEventListener("click", closeIdCard);
+    idBackdrop.classList.add("open");
+  }
+  function closeIdCard(){ idBackdrop.classList.remove("open"); }
+  idBackdrop.addEventListener("click", function(e){ if (e.target === idBackdrop) closeIdCard(); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeIdCard(); });
+
+  async function init(){
+    try{
+      await loadGristScript();
+      grist.ready({ requiredAccess: "full", name: "Espace RH" });
+      await loadAll();
+      document.getElementById("view-loading").style.display = "none";
+      document.getElementById("view-main").style.display = "block";
+      renderGroups();
+    }catch(err){
+      document.getElementById("view-loading").innerHTML =
+        '<strong>Connexion impossible</strong>Vérifiez que ce widget a bien été ouvert depuis une page Grist, avec l\'accès complet au document autorisé.';
+    }
+  }
+  init();
+
+})();
+</script>
+</body>
+</html>

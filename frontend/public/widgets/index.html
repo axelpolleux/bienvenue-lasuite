@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Espace manager — widget Grist</title>
+<style>
+  /* Marianne — typeface officielle de l'État français, chargée depuis le
+     paquet npm réellement publié par La Suite numérique (@gouvfr-lasuite/ui-components),
+     avec la pile de secours officielle (Marianne, arial, sans-serif). */
+  @font-face{
+    font-family:"Marianne"; font-weight:400; font-style:normal; font-display:swap;
+    src:url("https://cdn.jsdelivr.net/npm/@gouvfr-lasuite/ui-components@1.2.0/dist/assets/fonts/Marianne/Marianne-Regular.woff2") format("woff2");
+  }
+  @font-face{
+    font-family:"Marianne"; font-weight:500; font-style:normal; font-display:swap;
+    src:url("https://cdn.jsdelivr.net/npm/@gouvfr-lasuite/ui-components@1.2.0/dist/assets/fonts/Marianne/Marianne-Medium.woff2") format("woff2");
+  }
+  @font-face{
+    font-family:"Marianne"; font-weight:700; font-style:normal; font-display:swap;
+    src:url("https://cdn.jsdelivr.net/npm/@gouvfr-lasuite/ui-components@1.2.0/dist/assets/fonts/Marianne/Marianne-Bold.woff2") format("woff2");
+  }
+
+  :root{
+    /* Valeurs réelles extraites de @gouvfr/dsfr (Système de Design de l'État)
+       et de @gouvfr-lasuite/ui-tokens — plus de couleurs inventées. */
+    --paper:#F6F6F6; --surface:#FFFFFF; --ink:#161616; --ink-muted:#666666; --ink-faint:#929292;
+    --line:#DDDDDD; --line-strong:#CECECE;
+    --blue:#000091; --blue-soft:#ECECFE; --blue-ink:#000091;                 /* blue-france-sun-113-625 */
+    --red:#C9191E; --red-soft:#FFF4F4;                                       /* red-marianne-425-625 */
+    --green:#18753C; --green-soft:#E3FDEB;                                   /* success-425-625 */
+    --amber:#B34000; --amber-soft:#FFF4F3;                                   /* warning-425-625 */
+    --grey-soft:#EEEEEE;
+    --radius-s:4px; --radius-m:8px;                                         /* rayons réels des composants Cunningham */
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#161616; --surface:#1E1E1E; --ink:#F6F6F6; --ink-muted:#B1B1B1; --ink-faint:#8A8980;
+      --line:#3A3A3A; --line-strong:#454339;
+      --blue:#8585F6; --blue-soft:#21213F; --blue-ink:#C6C6FE;
+      --red:#F95C5E; --red-soft:#2B1919;
+      --green:#27A658; --green-soft:#142117;
+      --amber:#FC5D00; --amber-soft:#2D1814;
+      --grey-soft:#2C2C2E;
+    }
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ background:var(--paper); color:var(--ink); font-family:"Marianne", arial, sans-serif; font-size:15px; line-height:1.5; }
+  a{ color:inherit; }
+  button{ font-family:inherit; }
+  .shell{ max-width:1180px; margin:0 auto; padding:22px 22px 70px; }
+
+  .topbar{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+  .topbar .brand{ font-size:12px; color:var(--ink-faint); margin:0 0 5px; }
+  .topbar h1{ font-family:"Marianne", arial, sans-serif; font-weight:700; font-size:28px; margin:0; letter-spacing:-0.01em; }
+  .topbar .sub{ color:var(--ink-muted); margin-top:5px; font-size:13.5px; }
+
+  .btn{ border:1px solid var(--line-strong); background:var(--surface); color:var(--ink); padding:9px 15px; border-radius:var(--radius-s); font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .btn:hover{ border-color:var(--ink-faint); }
+  .btn.primary{ background:var(--blue); border-color:var(--blue); color:#fff; }
+  .btn.primary:hover{ opacity:.92; }
+  .btn.ghost{ border-color:transparent; background:transparent; color:var(--ink-muted); }
+  .btn:disabled{ opacity:.5; cursor:default; }
+
+  .controls{ display:flex; gap:12px; align-items:center; margin-bottom:16px; flex-wrap:wrap; }
+  .search{ flex:1 1 220px; position:relative; }
+  .search input{ width:100%; padding:9px 13px 9px 36px; border:1px solid var(--line-strong); border-radius:var(--radius-s); background:var(--surface); color:var(--ink); font-size:14px; }
+  .search svg{ position:absolute; left:11px; top:50%; transform:translateY(-50%); width:15px; height:15px; stroke:var(--ink-faint); }
+  .chips{ display:flex; gap:7px; flex-wrap:wrap; }
+  .chip{ border:1px solid var(--line-strong); background:var(--surface); color:var(--ink-muted); padding:6px 12px; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer; }
+  .chip[aria-pressed="true"]{ background:var(--blue); border-color:var(--blue); color:#fff; }
+
+  .list{ border:1px solid var(--line); border-radius:var(--radius-m); background:var(--surface); overflow:hidden; }
+  .list-head{ display:grid; grid-template-columns: 2fr 1.4fr 1.4fr 1.5fr 0.9fr 1.2fr 18px; gap:10px; padding:10px 16px; font-size:11.5px; color:var(--ink-faint); border-bottom:1px solid var(--line); font-weight:600; }
+  .row{ display:grid; grid-template-columns: 2fr 1.4fr 1.4fr 1.5fr 0.9fr 1.2fr 18px; gap:10px; align-items:center; padding:13px 16px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .tpl-select{ width:100%; border:1px solid transparent; background:transparent; color:var(--ink-muted); font-size:12.4px; font-family:inherit; padding:5px 6px; border-radius:var(--radius-s); cursor:pointer; }
+  .tpl-select:hover{ border-color:var(--line-strong); background:var(--paper); }
+  .tpl-select:focus-visible{ outline:2px solid var(--blue); outline-offset:1px; }
+  .row:last-child{ border-bottom:none; }
+  .row:hover{ background:var(--paper); }
+  .person{ display:flex; align-items:center; gap:11px; min-width:0; }
+  .avatar{ width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; color:#fff; flex:none; }
+  .p-name{ font-weight:600; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .p-role{ color:var(--ink-muted); font-size:12.4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .svc{ display:flex; align-items:center; gap:7px; min-width:0; }
+  .svc-badge{ width:22px; height:22px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; flex:none; }
+  .svc-name{ font-size:12.8px; color:var(--ink-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .contact{ display:flex; flex-direction:column; gap:2px; font-size:12.2px; color:var(--ink-muted); min-width:0; }
+  .contact span{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .since{ font-size:12.6px; color:var(--ink-muted); }
+  .status{ display:inline-flex; align-items:center; gap:6px; padding:4px 9px; border-radius:999px; font-size:11.5px; font-weight:600; white-space:nowrap; }
+  .status .dot{ width:6px; height:6px; border-radius:50%; }
+  .status.done{ background:var(--green-soft); color:var(--green); }
+  .status.done .dot{ background:var(--green); }
+  .status.progress{ background:var(--amber-soft); color:var(--amber); }
+  .status.progress .dot{ background:var(--amber); }
+  .status.new{ background:var(--grey-soft); color:var(--ink-muted); }
+  .status.new .dot{ background:var(--ink-faint); }
+  .chevron{ color:var(--ink-faint); }
+
+  .empty, .state{ padding:40px 20px; text-align:center; color:var(--ink-muted); }
+  .state strong{ display:block; color:var(--ink); font-size:15px; margin-bottom:6px; font-weight:600; }
+
+  #view-detail{ display:none; }
+  .back{ display:inline-flex; align-items:center; gap:6px; background:none; border:none; color:var(--ink-muted); font-size:13px; font-weight:600; cursor:pointer; padding:5px 2px; margin-bottom:16px; }
+  .back:hover{ color:var(--ink); }
+  .back svg{ width:14px; height:14px; }
+
+  .dossier-head{ display:flex; gap:18px; align-items:flex-start; padding:22px; border:1px solid var(--line); border-radius:var(--radius-m); background:var(--surface); margin-bottom:18px; flex-wrap:wrap; }
+  .dossier-avatar{ width:58px; height:58px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:20px; color:#fff; flex:none; }
+  .dossier-id{ flex:1 1 240px; min-width:0; }
+  .dossier-id h2{ font-family:"Marianne", arial, sans-serif; font-weight:700; font-size:23px; margin:0 0 3px; letter-spacing:-0.01em; }
+  .dossier-role{ color:var(--ink-muted); font-size:13.8px; margin-bottom:9px; }
+  .dossier-meta{ display:flex; flex-wrap:wrap; gap:7px; align-items:center; }
+  .tag{ display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:var(--grey-soft); color:var(--ink-muted); }
+  .tag.svc{ background:transparent; border:1px solid var(--line-strong); padding-left:5px; }
+  .tag.svc .svc-badge{ width:17px; height:17px; border-radius:5px; font-size:8px; }
+  .tag.alert{ background:var(--red-soft); color:var(--red); }
+  .dossier-side{ flex:0 0 220px; display:flex; flex-direction:column; gap:9px; }
+  .field{ display:flex; justify-content:space-between; gap:10px; font-size:12.5px; }
+  .field .k{ color:var(--ink-faint); }
+  .field .v{ font-weight:600; text-align:right; }
+
+  .grid-2{ display:grid; grid-template-columns: 1.35fr 1fr; gap:18px; align-items:start; }
+  .panel{ border:1px solid var(--line); border-radius:var(--radius-m); background:var(--surface); padding:20px; }
+  .panel + .panel{ margin-top:18px; }
+  .panel h3{ margin:0 0 4px; font-size:15.5px; font-weight:700; }
+  .panel .panel-sub{ color:var(--ink-muted); font-size:12.6px; margin:0 0 15px; }
+  .progress-track{ height:6px; background:var(--grey-soft); border-radius:999px; overflow:hidden; margin-bottom:16px; }
+  .progress-fill{ height:100%; background:var(--green); border-radius:999px; transition:width .3s ease; }
+
+  .check{ display:flex; align-items:flex-start; gap:11px; padding:11px 0; border-bottom:1px solid var(--line); }
+  .check:last-child{ border-bottom:none; }
+  .check input{ position:absolute; opacity:0; width:19px; height:19px; margin:0; }
+  .check .box{ width:19px; height:19px; border-radius:5px; border:1.6px solid var(--line-strong); flex:none; margin-top:1px; display:flex; align-items:center; justify-content:center; cursor:pointer; background:var(--surface); }
+  .check input:checked + .box{ background:var(--green); border-color:var(--green); }
+  .check input:disabled + .box{ opacity:.6; cursor:wait; }
+  .check .box svg{ width:11px; height:11px; stroke:#fff; opacity:0; }
+  .check input:checked + .box svg{ opacity:1; }
+  .check-body{ flex:1; min-width:0; }
+  .check-label{ font-size:13.6px; font-weight:600; cursor:pointer; }
+  .check.is-done .check-label{ color:var(--ink-muted); text-decoration:line-through; text-decoration-color:var(--line-strong); }
+  .check-desc{ font-size:12.3px; color:var(--ink-muted); margin-top:2px; }
+  .check-meta{ font-size:11.5px; color:var(--ink-faint); margin-top:4px; }
+  .check-kind{ font-size:10px; font-weight:700; letter-spacing:.03em; color:var(--blue-ink); background:var(--blue-soft); padding:2px 6px; border-radius:5px; margin-left:7px; vertical-align:middle; }
+
+  .comment-form{ display:flex; flex-direction:column; gap:9px; margin-bottom:16px; }
+  .comment-form textarea{ width:100%; min-height:60px; padding:9px 11px; border:1px solid var(--line-strong); border-radius:var(--radius-s); background:var(--paper); color:var(--ink); font-family:inherit; font-size:13.3px; resize:vertical; }
+  .comment-form .btn{ align-self:flex-end; }
+  .comment{ display:flex; gap:11px; padding:13px 0; border-top:1px solid var(--line); }
+  .comment:first-of-type{ border-top:none; padding-top:0; }
+  .comment-dot{ width:7px; height:7px; border-radius:50%; background:var(--blue); margin-top:7px; flex:none; }
+  .comment-text{ font-size:13.4px; }
+  .comment-date{ font-size:11.5px; color:var(--ink-faint); margin-top:3px; }
+
+  .add-form{ border:1px solid var(--line); border-radius:var(--radius-m); background:var(--surface); padding:18px; margin-bottom:16px; display:none; }
+  .add-form.open{ display:block; }
+  .add-form h3{ margin:0 0 12px; font-size:14.5px; }
+  .add-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .add-grid label{ display:block; font-size:11.5px; color:var(--ink-faint); margin-bottom:4px; font-weight:600; }
+  .add-grid input, .add-grid select{ width:100%; padding:8px 10px; border:1px solid var(--line-strong); border-radius:var(--radius-s); background:var(--paper); color:var(--ink); font-size:13px; font-family:inherit; }
+  .add-actions{ display:flex; gap:8px; justify-content:flex-end; }
+
+  .toast{ position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(10px); background:var(--ink); color:var(--paper); padding:10px 16px; border-radius:var(--radius-s); font-size:13px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; z-index:20; }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width: 860px){
+    .grid-2{ grid-template-columns:1fr; }
+    .dossier-side{ flex:1 1 100%; flex-direction:row; flex-wrap:wrap; gap:14px 26px; }
+    .field{ flex-direction:column; gap:2px; }
+    .field .v{ text-align:left; }
+    .add-grid{ grid-template-columns:1fr; }
+  }
+  @media (max-width: 700px){
+    .list-head{ display:none; }
+    .row{ grid-template-columns:1fr; gap:7px; padding:15px 16px; }
+    .row .chevron{ display:none; }
+    .row .contact{ flex-direction:row; gap:12px; }
+  }
+  .colleagues-summary{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .colleague-chip{ display:inline-flex; align-items:center; gap:6px; padding:5px 10px; border-radius:999px; font-size:12.5px; font-weight:600; background:var(--grey-soft); color:var(--ink); }
+
+  .backdrop{ position:fixed; inset:0; background:rgba(20,20,18,0.45); display:none; align-items:center; justify-content:center; z-index:30; padding:20px; }
+  .backdrop.open{ display:flex; }
+  .colleagues-modal{ background:var(--surface); border-radius:var(--radius-m); max-width:480px; width:100%; max-height:80vh; padding:22px; position:relative; display:flex; flex-direction:column; }
+  .colleagues-modal .close-btn{ position:absolute; top:12px; right:12px; border:none; background:transparent; color:var(--ink-faint); cursor:pointer; width:28px; height:28px; border-radius:var(--radius-s); display:flex; align-items:center; justify-content:center; }
+  .colleagues-modal .close-btn:hover{ background:var(--grey-soft); color:var(--ink); }
+  .colleagues-modal h3{ margin:0 0 4px; font-size:16px; }
+  .colleagues-modal .modal-sub{ color:var(--ink-muted); font-size:12.6px; margin:0 0 14px; }
+  .colleagues-list{ overflow-y:auto; flex:1; margin-bottom:14px; }
+  .cg-group{ border:1px solid var(--line); border-radius:var(--radius-s); margin-bottom:8px; overflow:hidden; }
+  .cg-group summary{ list-style:none; cursor:pointer; padding:9px 12px; display:flex; align-items:center; gap:8px; user-select:none; font-size:13px; font-weight:600; background:var(--paper); }
+  .cg-group summary::-webkit-details-marker{ display:none; }
+  .cg-group summary .chev{ margin-left:auto; color:var(--ink-faint); transition:transform .15s ease; flex:none; }
+  .cg-group[open] summary .chev{ transform:rotate(90deg); }
+  .cg-row{ display:flex; align-items:center; gap:10px; padding:8px 14px; border-top:1px solid var(--line); font-size:13px; cursor:pointer; }
+  .cg-row:hover{ background:var(--paper); }
+  .cg-row .cg-name{ font-weight:600; }
+  .cg-row .cg-role{ color:var(--ink-muted); font-size:12px; }
+  .cg-row input{ width:16px; height:16px; flex:none; accent-color:var(--blue); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div id="view-loading" class="state">
+    <strong>Connexion au document…</strong>
+    Autorisez l'accès complet si Grist vous le demande.
+  </div>
+
+  <div id="view-identity" class="state" style="display:none; text-align:left; max-width:420px; margin:60px auto;">
+    <strong style="font-size:19px; display:block; margin-bottom:6px;">Qui êtes-vous ?</strong>
+    <p style="margin:0 0 18px;">Choisissez votre nom pour n'afficher que votre équipe. Ce choix reste dans ce navigateur.</p>
+    <div id="identity-list" style="display:flex; flex-direction:column; gap:8px;"></div>
+  </div>
+
+  <div id="view-list" style="display:none">
+    <div class="topbar">
+      <div>
+        <p class="brand">Bienvenue à La Suite — espace manager</p>
+        <h1>Espace manager</h1>
+        <p class="sub" id="team-sub"></p>
+      </div>
+      <button class="btn ghost" id="btn-switch-identity" style="padding:2px 4px; font-size:12px;">Changer d'identité</button>
+    </div>
+
+    <div class="controls">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="search-input" placeholder="Rechercher un nom ou un poste…" aria-label="Rechercher dans l'équipe">
+      </div>
+    </div>
+
+    <div class="list">
+      <div class="list-head">
+        <div>Membre</div><div>Service</div><div>Template</div><div>Contact</div><div>Arrivée</div><div>Intégration</div><div></div>
+      </div>
+      <div id="rows"></div>
+    </div>
+  </div>
+
+  <div id="view-detail">
+    <button class="back" id="btn-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      Retour à l'équipe
+    </button>
+    <div class="dossier-head" id="dossier-head"></div>
+    <div class="grid-2">
+      <div><div class="panel" id="panel-checklist"></div></div>
+      <div>
+        <div class="panel" id="panel-comments"></div>
+        <div class="panel" id="panel-colleagues"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+<div class="backdrop" id="colleagues-backdrop">
+  <div class="colleagues-modal" id="colleagues-modal-content"></div>
+</div>
+
+<script>
+(function(){
+
+  var MONTHS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+  var AVATAR_PALETTE = ["#5B5BD6","#B34700","#197C6A","#A32657","#3E6BC9","#7A5AF8","#B5842A"];
+
+  function avatarColor(name){
+    var h = 0;
+    for (var i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) >>> 0;
+    return AVATAR_PALETTE[h % AVATAR_PALETTE.length];
+  }
+  function initials(name){
+    var p = name.trim().split(" ");
+    return (p[0][0] + (p[1] ? p[1][0] : "")).toUpperCase();
+  }
+  function toast(msg){
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function(){ t.classList.remove("show"); }, 2400);
+  }
+  function todayUTCSeconds(){
+    var n = new Date();
+    return Math.floor(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / 1000);
+  }
+  function gristDateToParts(sec){
+    if (sec === null || sec === undefined) return null;
+    var d = new Date(sec * 1000);
+    return { y: d.getUTCFullYear(), m: d.getUTCMonth(), day: d.getUTCDate() };
+  }
+  function formatGristDate(sec){
+    var p = gristDateToParts(sec);
+    if (!p) return "—";
+    return p.day + " " + MONTHS[p.m] + " " + p.y;
+  }
+  function sinceLabel(sec){
+    var p = gristDateToParts(sec);
+    if (!p) return "—";
+    var arrival = new Date(Date.UTC(p.y, p.m, p.day));
+    var now = new Date();
+    var nowUTC = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    var months = (nowUTC.getUTCFullYear()-arrival.getUTCFullYear())*12 + (nowUTC.getUTCMonth()-arrival.getUTCMonth());
+    if (arrival > nowUTC){
+      var mFut = (arrival.getUTCFullYear()-nowUTC.getUTCFullYear())*12 + (arrival.getUTCMonth()-nowUTC.getUTCMonth());
+      return mFut <= 0 ? "Arrive bientôt" : "Arrive dans " + mFut + " mois";
+    }
+    if (months < 1) return "Cette semaine";
+    if (months < 12) return "Depuis " + months + " mois";
+    var y = Math.floor(months/12);
+    return "Depuis " + y + (y>1 ? " ans" : " an");
+  }
+  function dateInputToGrist(val){
+    if (!val) return null;
+    var parts = val.split("-").map(Number);
+    return Math.floor(Date.UTC(parts[0], parts[1]-1, parts[2]) / 1000);
+  }
+
+  /* ---------------- Grist plugin loading ---------------- */
+
+  function loadGristScript(){
+    return new Promise(function(resolve, reject){
+      var s = document.createElement("script");
+      s.src = "https://docs.getgrist.com/grist-plugin-api.js";
+      s.onload = resolve;
+      s.onerror = function(){ reject(new Error("grist-plugin-api.js indisponible")); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function rowsFromTable(t){
+    var ids = t.id, rows = [];
+    for (var i=0;i<ids.length;i++){
+      var row = { id: ids[i] };
+      for (var col in t){ if (col !== "id") row[col] = t[col][i]; }
+      rows.push(row);
+    }
+    return rows;
+  }
+
+  /* ---------------- App state ---------------- */
+
+  var SERVICES = [], MEMBERS = [], ITEMS = [], MC = [], COMMENTS = [], TEMPLATES = [];
+  var searchQuery = "";
+  var MY_SERVICE_ID = null; // service géré par le manager identifié dans ce navigateur
+
+  function serviceById(id){ return SERVICES.filter(function(s){ return s.id === id; })[0]; }
+  function templateById(id){ return TEMPLATES.filter(function(t){ return t.id === id; })[0]; }
+  function templateItems(templateId){
+    return ITEMS.filter(function(i){ return i.Template === templateId; }).sort(function(a,b){ return a.Order - b.Order; });
+  }
+  function memberChecklist(memberId){
+    var m = MEMBERS.filter(function(x){ return x.id === memberId; })[0];
+    if (!m) return [];
+    var rows = MC.filter(function(r){ return r.Member === memberId; });
+    var fromTemplate = templateItems(m.Template).map(function(item){
+      var row = rows.filter(function(r){ return r.Item === item.id; })[0];
+      return { type:"template", item: item, row: row };
+    });
+    var custom = rows.filter(function(r){ return !r.Item && r.CustomLabel; }).map(function(row){
+      return { type:"custom", item:{ id:"custom-"+row.id, Label: row.CustomLabel, Description: row.CustomDescription, Kind:"MANAGER" }, row: row };
+    });
+    return fromTemplate.concat(custom);
+  }
+  /* Le rapprochement Service → Template se fait désormais côté Grist
+     (formule trigger sur Members.Template) — plus besoin de le refaire ici. */
+  /* Change le template d'un membre : conserve l'état "fait" des étapes communes
+     aux deux templates (comparées par libellé), ajoute les nouvelles étapes,
+     retire celles qui n'appartiennent plus au template choisi. */
+  async function changeMemberTemplate(memberId, newTemplateId){
+    var m = MEMBERS.filter(function(x){ return x.id === memberId; })[0];
+    if (!m || m.Template === newTemplateId) return;
+    var oldItems = templateItems(m.Template);
+    var newItems = templateItems(newTemplateId);
+    var oldRows = MC.filter(function(r){ return r.Member === memberId && r.Item; });
+    var doneByLabel = {};
+    oldItems.forEach(function(item){
+      var row = oldRows.filter(function(r){ return r.Item === item.id; })[0];
+      if (row && row.Done) doneByLabel[item.Label] = row.DoneAt;
+    });
+    var actions = [["UpdateRecord","Members", memberId, { Template:newTemplateId }]];
+    oldRows.forEach(function(r){ actions.push(["RemoveRecord","MemberChecklist", r.id]); });
+    newItems.forEach(function(item){
+      var carried = Object.prototype.hasOwnProperty.call(doneByLabel, item.Label);
+      actions.push(["AddRecord","MemberChecklist", null, { Member:memberId, Item:item.id, Done:carried, DoneAt: carried ? doneByLabel[item.Label] : null }]);
+    });
+    await grist.docApi.applyUserActions(actions);
+    await loadAll();
+  }
+  function memberComments(memberId){
+    return COMMENTS.filter(function(c){ return c.Member === memberId; })
+      .sort(function(a,b){ return (b.Date||0) - (a.Date||0); });
+  }
+  function progressOf(memberId){
+    var cl = memberChecklist(memberId);
+    var done = cl.filter(function(c){ return c.row && c.row.Done; }).length;
+    return { done: done, total: cl.length, pct: cl.length ? Math.round(done/cl.length*100) : 0 };
+  }
+  function statusChip(pct){
+    if (pct === 0) return { cls:"new", label:"À démarrer" };
+    if (pct === 100) return { cls:"done", label:"Terminée" };
+    return { cls:"progress", label:"En cours" };
+  }
+
+  async function loadAll(){
+    var res = await Promise.all([
+      grist.docApi.fetchTable("Services"),
+      grist.docApi.fetchTable("Members"),
+      grist.docApi.fetchTable("ChecklistItems"),
+      grist.docApi.fetchTable("MemberChecklist"),
+      grist.docApi.fetchTable("Comments"),
+      grist.docApi.fetchTable("Templates")
+    ]);
+    SERVICES = rowsFromTable(res[0]);
+    MEMBERS = rowsFromTable(res[1]);
+    ITEMS = rowsFromTable(res[2]).sort(function(a,b){ return a.Order - b.Order; });
+    MC = rowsFromTable(res[3]);
+    COMMENTS = rowsFromTable(res[4]);
+    TEMPLATES = rowsFromTable(res[5]);
+  }
+
+  /* ---------------- Rendering: list ---------------- */
+
+  function filteredMembers(){
+    var q = searchQuery.trim().toLowerCase();
+    return MEMBERS.filter(function(m){
+      if (m.Service !== MY_SERVICE_ID) return false;
+      if (!q) return true;
+      var hay = (m.Name + " " + m.Role).toLowerCase();
+      return hay.indexOf(q) > -1;
+    });
+  }
+
+  function renderRows(){
+    var rows = document.getElementById("rows");
+    var members = filteredMembers();
+    var svc = serviceById(MY_SERVICE_ID);
+    var totalDone = members.filter(function(m){ return progressOf(m.id).pct === 100; }).length;
+    document.getElementById("team-sub").textContent =
+      (svc ? "Équipe " + svc.Name + " — " : "") + members.length + " membres — " + totalDone + " intégrations terminées";
+
+    if (!members.length){
+      rows.innerHTML = '<div class="empty"><strong>Aucun membre ne correspond</strong>Essayez un autre nom.</div>';
+      return;
+    }
+
+    rows.innerHTML = "";
+    members.forEach(function(m){
+      var svc = serviceById(m.Service) || { Name:"—", Initials:"?", Color:"#9C9B93" };
+      var prog = progressOf(m.id);
+      var chip = statusChip(prog.pct);
+
+      var row = document.createElement("div");
+      row.className = "row";
+      row.tabIndex = 0;
+      row.setAttribute("role","button");
+      row.setAttribute("aria-label", "Ouvrir la fiche de " + m.Name);
+      var tplOptions = TEMPLATES.map(function(t){
+        return '<option value="' + t.id + '"' + (t.id === m.Template ? " selected" : "") + '>' + t.Name + '</option>';
+      }).join("");
+
+      row.innerHTML =
+        '<div class="person"><div class="avatar" style="background:' + avatarColor(m.Name) + '">' + initials(m.Name) + '</div>' +
+          '<div style="min-width:0"><div class="p-name">' + m.Name + '</div><div class="p-role">' + (m.Role||"") + '</div></div></div>' +
+        '<div class="svc"><div class="svc-badge" style="background:' + svc.Color + '">' + svc.Initials + '</div><div class="svc-name">' + svc.Name + '</div></div>' +
+        '<div><select class="tpl-select" aria-label="Template d\'onboarding de ' + m.Name + '">' + tplOptions + '</select></div>' +
+        '<div class="contact"><span>' + (m.Email||"") + '</span><span>' + (m.Phone||"") + '</span></div>' +
+        '<div class="since">' + sinceLabel(m.ArrivalDate) + (m.DepartureDate ? '<div style="color:var(--red);font-weight:600;margin-top:2px;">Départ prévu</div>' : '') + '</div>' +
+        '<div><span class="status ' + chip.cls + '"><span class="dot"></span>' + chip.label + ' · ' + prog.done + '/' + prog.total + '</span></div>' +
+        '<div class="chevron"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>';
+
+      var tplSelect = row.querySelector(".tpl-select");
+      tplSelect.addEventListener("click", function(e){ e.stopPropagation(); });
+      tplSelect.addEventListener("change", async function(e){
+        e.stopPropagation();
+        tplSelect.disabled = true;
+        try{
+          await changeMemberTemplate(m.id, Number(tplSelect.value));
+          renderRows();
+          toast("Template mis à jour pour " + m.Name.split(" ")[0]);
+        }catch(err){
+          toast("Échec de la mise à jour — réessayez");
+          tplSelect.disabled = false;
+        }
+      });
+
+      row.addEventListener("click", function(){ openDetail(m.id); });
+      row.addEventListener("keydown", function(e){ if (e.key==="Enter"||e.key===" "){ e.preventDefault(); openDetail(m.id); } });
+      rows.appendChild(row);
+    });
+  }
+
+  document.getElementById("search-input").addEventListener("input", function(e){ searchQuery = e.target.value; renderRows(); });
+
+  /* ---------------- Detail view ---------------- */
+
+  function openDetail(id){
+    renderDetail(id);
+    document.getElementById("view-list").style.display = "none";
+    document.getElementById("view-detail").style.display = "block";
+    window.scrollTo(0,0);
+  }
+  function backToList(){
+    document.getElementById("view-detail").style.display = "none";
+    document.getElementById("view-list").style.display = "block";
+    renderRows();
+  }
+  document.getElementById("btn-back").addEventListener("click", backToList);
+
+  function renderDetail(id){
+    var m = MEMBERS.filter(function(x){ return x.id === id; })[0];
+    if (!m) return;
+    var svc = serviceById(m.Service) || { Name:"—", Initials:"?", Color:"#9C9B93" };
+    var tpl = templateById(m.Template);
+    var prog = progressOf(m.id);
+    var tplOptions = TEMPLATES.map(function(t){
+      return '<option value="' + t.id + '"' + (t.id === m.Template ? " selected" : "") + '>' + t.Name + '</option>';
+    }).join("");
+
+    var head = document.getElementById("dossier-head");
+    head.innerHTML =
+      '<div class="dossier-avatar" style="background:' + avatarColor(m.Name) + '">' + initials(m.Name) + '</div>' +
+      '<div class="dossier-id"><h2>' + m.Name + '</h2><div class="dossier-role">' + (m.Role||"") + '</div>' +
+        '<div class="dossier-meta">' +
+          '<span class="tag svc"><span class="svc-badge" style="background:' + svc.Color + '">' + svc.Initials + '</span>' + svc.Name + '</span>' +
+          '<span class="tag">' + sinceLabel(m.ArrivalDate) + '</span>' +
+          (m.DepartureDate ? '<span class="tag alert">Départ le ' + formatGristDate(m.DepartureDate) + '</span>' : '') +
+        '</div></div>' +
+      '<div class="dossier-side">' +
+        '<div class="field"><span class="k">Email</span><span class="v">' + (m.Email||"—") + '</span></div>' +
+        '<div class="field"><span class="k">Téléphone</span><span class="v">' + (m.Phone||"—") + '</span></div>' +
+        '<div class="field"><span class="k">Arrivée</span><span class="v">' + formatGristDate(m.ArrivalDate) + '</span></div>' +
+        '<div class="field"><span class="k">Départ</span><span class="v">' + (m.DepartureDate ? formatGristDate(m.DepartureDate) : "—") + '</span></div>' +
+        '<div class="field" style="align-items:center"><span class="k">Template</span><select id="detail-tpl-select" class="tpl-select" style="width:auto;max-width:150px;text-align:right;color:var(--ink);font-weight:600;">' + tplOptions + '</select></div>' +
+      '</div>';
+
+    document.getElementById("detail-tpl-select").addEventListener("change", async function(e){
+      e.target.disabled = true;
+      try{
+        await changeMemberTemplate(m.id, Number(e.target.value));
+        renderDetail(m.id);
+        toast("Template mis à jour");
+      }catch(err){
+        toast("Échec de la mise à jour — réessayez");
+        e.target.disabled = false;
+      }
+    });
+
+    var checklistPanel = document.getElementById("panel-checklist");
+    checklistPanel.innerHTML =
+      '<h3>Suivi de l\'intégration</h3>' +
+      '<p class="panel-sub">Template « ' + (tpl ? tpl.Name : "—") + ' » — parcours pas-à-pas de découverte des outils La Suite numérique.</p>' +
+      '<div class="progress-track"><div class="progress-fill" style="width:' + prog.pct + '%"></div></div>' +
+      '<div id="check-list"></div>' +
+      '<button class="btn ghost" id="btn-add-task" style="margin-top:10px;padding-left:0;">+ Ajouter une tâche pour ' + m.Name.split(" ")[0] + '</button>' +
+      '<div class="add-form" id="add-task-form" style="margin-top:10px;padding:14px;">' +
+        '<div style="margin-bottom:10px;"><label style="display:block;font-size:11.5px;color:var(--ink-faint);margin-bottom:4px;font-weight:600;">Intitulé de la tâche</label>' +
+          '<input id="at-label" type="text" placeholder="Ex. Présenter le dossier X" style="width:100%;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-s);background:var(--paper);color:var(--ink);font-size:13px;font-family:inherit;"></div>' +
+        '<div style="margin-bottom:12px;"><label style="display:block;font-size:11.5px;color:var(--ink-faint);margin-bottom:4px;font-weight:600;">Détail (optionnel)</label>' +
+          '<input id="at-desc" type="text" placeholder="Précision utile pour ' + m.Name.split(" ")[0] + '" style="width:100%;padding:8px 10px;border:1px solid var(--line-strong);border-radius:var(--radius-s);background:var(--paper);color:var(--ink);font-size:13px;font-family:inherit;"></div>' +
+        '<div class="add-actions"><button class="btn ghost" id="at-cancel">Annuler</button><button class="btn primary" id="at-save">Ajouter la tâche</button></div>' +
+      '</div>';
+    var list = checklistPanel.querySelector("#check-list");
+    var addTaskForm = checklistPanel.querySelector("#add-task-form");
+    checklistPanel.querySelector("#btn-add-task").addEventListener("click", function(){ addTaskForm.classList.add("open"); });
+    checklistPanel.querySelector("#at-cancel").addEventListener("click", function(){ addTaskForm.classList.remove("open"); });
+    checklistPanel.querySelector("#at-save").addEventListener("click", async function(){
+      var label = checklistPanel.querySelector("#at-label").value.trim();
+      var desc = checklistPanel.querySelector("#at-desc").value.trim();
+      if (!label){ toast("L'intitulé est obligatoire"); return; }
+      var btn = checklistPanel.querySelector("#at-save");
+      btn.disabled = true;
+      try{
+        await grist.docApi.applyUserActions([["AddRecord","MemberChecklist", null, { Member:m.id, CustomLabel:label, CustomDescription:desc, Done:false, DoneAt:null, AddedByManager:true }]]);
+        await loadAll();
+        renderDetail(m.id);
+        toast("Tâche ajoutée");
+      }catch(err){
+        toast("Échec de l'enregistrement — réessayez");
+        btn.disabled = false;
+      }
+    });
+
+    memberChecklist(m.id).forEach(function(entry){
+      var item = entry.item, row = entry.row;
+      var done = !!(row && row.Done);
+      var cid = "chk-" + m.id + "-" + item.id;
+      var el = document.createElement("div");
+      el.className = "check" + (done ? " is-done" : "");
+      el.innerHTML =
+        '<input type="checkbox" id="' + cid + '" ' + (done ? "checked" : "") + '>' +
+        '<label class="box" for="' + cid + '"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></label>' +
+        '<div class="check-body"><label class="check-label" for="' + cid + '">' + item.Label + '<span class="check-kind">' + item.Kind + '</span></label>' +
+        '<div class="check-desc">' + (item.Description||"") + '</div>' +
+        (done && row.DoneAt ? '<div class="check-meta">Terminé le ' + formatGristDate(row.DoneAt) + '</div>' : '') + '</div>';
+
+      var input = el.querySelector("input");
+      input.addEventListener("change", async function(){
+        input.disabled = true;
+        var isDone = input.checked;
+        var doneAt = isDone ? todayUTCSeconds() : null;
+        try{
+          if (row){
+            await grist.docApi.applyUserActions([["UpdateRecord","MemberChecklist", row.id, { Done:isDone, DoneAt:doneAt }]]);
+          } else {
+            await grist.docApi.applyUserActions([["AddRecord","MemberChecklist", null, { Member:m.id, Item:item.id, Done:isDone, DoneAt:doneAt }]]);
+          }
+          await loadAll();
+          renderDetail(m.id);
+        }catch(err){
+          toast("Échec de l'enregistrement — réessayez");
+          input.checked = !isDone;
+          input.disabled = false;
+        }
+      });
+      list.appendChild(el);
+    });
+
+    var commentsPanel = document.getElementById("panel-comments");
+    commentsPanel.innerHTML =
+      '<h3>Notes de suivi</h3><p class="panel-sub">Visibles par les personnes ayant accès au document.</p>' +
+      '<div class="comment-form"><textarea id="comment-input" placeholder="Ajouter une note sur ' + m.Name.split(" ")[0] + '…"></textarea>' +
+      '<button class="btn primary" id="btn-comment">Ajouter la note</button></div>' +
+      '<div id="comment-list"></div>';
+
+    var cl = commentsPanel.querySelector("#comment-list");
+    var comments = memberComments(m.id);
+    if (!comments.length){
+      cl.innerHTML = '<p style="color:var(--ink-faint);font-size:13px;margin:0;">Aucune note pour le moment.</p>';
+    } else {
+      comments.forEach(function(c){
+        var d = document.createElement("div");
+        d.className = "comment";
+        d.innerHTML = '<div class="comment-dot"></div><div><div class="comment-text">' + c.Text + '</div><div class="comment-date">' + formatGristDate(c.Date) + '</div></div>';
+        cl.appendChild(d);
+      });
+    }
+
+    commentsPanel.querySelector("#btn-comment").addEventListener("click", async function(){
+      var ta = commentsPanel.querySelector("#comment-input");
+      var val = ta.value.trim();
+      if (!val) return;
+      var btn = commentsPanel.querySelector("#btn-comment");
+      btn.disabled = true;
+      try{
+        await grist.docApi.applyUserActions([["AddRecord","Comments", null, { Member:m.id, Date:todayUTCSeconds(), Text:val }]]);
+        await loadAll();
+        renderDetail(m.id);
+        toast("Note ajoutée");
+      }catch(err){
+        toast("Échec de l'enregistrement — réessayez");
+      }
+      btn.disabled = false;
+    });
+    var colleaguesPanel = document.getElementById("panel-colleagues");
+    var colleagueIds = refListIds(m.ColleaguesToMeet);
+    var colleagueMembers = MEMBERS.filter(function(x){ return colleagueIds.indexOf(x.id) > -1; });
+    colleaguesPanel.innerHTML =
+      '<h3>Personnes à rencontrer</h3>' +
+      '<p class="panel-sub">Collègues à présenter à ' + m.Name.split(" ")[0] + ' pendant son arrivée.</p>' +
+      '<div class="colleagues-summary" id="colleagues-summary"></div>' +
+      '<button class="btn" id="btn-edit-colleagues">' + (colleagueMembers.length ? "Modifier la sélection" : "+ Choisir des collègues") + '</button>';
+    var summaryEl = colleaguesPanel.querySelector("#colleagues-summary");
+    summaryEl.innerHTML = colleagueMembers.length
+      ? colleagueMembers.map(function(c){ return '<span class="colleague-chip">' + c.Name + (c.Role ? " · " + c.Role : "") + '</span>'; }).join("")
+      : '<p style="color:var(--ink-faint);font-size:13px;margin:0 0 10px;">Aucun collègue sélectionné pour le moment.</p>';
+    colleaguesPanel.querySelector("#btn-edit-colleagues").addEventListener("click", function(){ openColleaguesModal(m.id); });
+  }
+
+  /* ---------------- Personnes à rencontrer (sélection par accordéon) ---------------- */
+
+  function refListIds(val){
+    if (!val) return [];
+    if (Array.isArray(val)) return val[0] === "L" ? val.slice(1) : val;
+    return [];
+  }
+
+  var colleaguesBackdrop = document.getElementById("colleagues-backdrop");
+  function openColleaguesModal(memberId){
+    var m = MEMBERS.filter(function(x){ return x.id === memberId; })[0];
+    if (!m) return;
+    var selected = refListIds(m.ColleaguesToMeet).slice();
+
+    var groupsHtml = SERVICES.map(function(s){
+      var members = MEMBERS.filter(function(x){ return x.Service === s.id && x.id !== memberId; })
+        .sort(function(a,b){ return (a.LastName||a.Name||"").localeCompare(b.LastName||b.Name||"", "fr"); });
+      if (!members.length) return "";
+      var rows = members.map(function(x){
+        var cid = "cg-" + x.id;
+        return '<label class="cg-row" for="' + cid + '">' +
+          '<input type="checkbox" id="' + cid + '" data-id="' + x.id + '"' + (selected.indexOf(x.id) > -1 ? " checked" : "") + '>' +
+          '<span><span class="cg-name">' + x.Name + '</span>' + (x.Role ? '<span class="cg-role"> · ' + x.Role + '</span>' : '') + '</span>' +
+        '</label>';
+      }).join("");
+      return '<details class="cg-group" open>' +
+        '<summary><div class="svc-badge" style="background:' + s.Color + ';width:20px;height:20px;border-radius:5px;font-size:9px;">' + s.Initials + '</div>' + s.Name +
+          '<svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></summary>' +
+        rows +
+      '</details>';
+    }).join("");
+
+    document.getElementById("colleagues-modal-content").innerHTML =
+      '<button class="close-btn" id="cg-close" aria-label="Fermer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+      '<h3>Personnes à rencontrer</h3>' +
+      '<p class="modal-sub">Coche les collègues à présenter à ' + m.Name.split(" ")[0] + '.</p>' +
+      '<div class="colleagues-list">' + (groupsHtml || '<p style="color:var(--ink-faint);font-size:13px;">Aucun autre agent dans l\'équipe pour l\'instant.</p>') + '</div>' +
+      '<div class="add-actions"><button class="btn ghost" id="cg-cancel">Annuler</button><button class="btn primary" id="cg-save">Enregistrer</button></div>';
+
+    document.getElementById("cg-close").addEventListener("click", closeColleaguesModal);
+    document.getElementById("cg-cancel").addEventListener("click", closeColleaguesModal);
+    document.getElementById("cg-save").addEventListener("click", async function(){
+      var btn = document.getElementById("cg-save");
+      btn.disabled = true;
+      var checked = Array.prototype.slice.call(document.querySelectorAll("#colleagues-modal-content input[type=checkbox]:checked"))
+        .map(function(input){ return Number(input.getAttribute("data-id")); });
+      try{
+        await grist.docApi.applyUserActions([["UpdateRecord","Members", memberId, { ColleaguesToMeet: checked }]]);
+        await loadAll();
+        renderDetail(memberId);
+        closeColleaguesModal();
+        toast("Sélection enregistrée");
+      }catch(err){
+        toast("Échec de l'enregistrement — réessayez");
+        btn.disabled = false;
+      }
+    });
+    colleaguesBackdrop.classList.add("open");
+  }
+  function closeColleaguesModal(){ colleaguesBackdrop.classList.remove("open"); }
+  colleaguesBackdrop.addEventListener("click", function(e){ if (e.target === colleaguesBackdrop) closeColleaguesModal(); });
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape") closeColleaguesModal(); });
+
+  /* ---------------- Identité (manager ↔ service, mémorisée localement) ---------------- */
+
+  function loadSavedServiceId(){
+    try{
+      var raw = localStorage.getItem("bals-manager-service-id");
+      return raw ? Number(raw) : null;
+    }catch(e){ return null; }
+  }
+  function saveServiceId(id){
+    try{ localStorage.setItem("bals-manager-service-id", String(id)); }catch(e){}
+  }
+  function clearSavedServiceId(){
+    try{ localStorage.removeItem("bals-manager-service-id"); }catch(e){}
+  }
+
+  function showIdentityGate(){
+    document.getElementById("view-list").style.display = "none";
+    document.getElementById("view-detail").style.display = "none";
+    var gate = document.getElementById("view-identity");
+    var list = document.getElementById("identity-list");
+    var managed = SERVICES.filter(function(s){ return s.Manager && s.Manager.trim() !== ""; });
+    if (!managed.length){
+      list.innerHTML = '<p>Aucun manager n\'est encore renseigné sur les services (table Services, colonne Manager).</p>';
+    } else {
+      list.innerHTML = managed.map(function(s){
+        return '<button class="btn" data-service="' + s.id + '" style="text-align:left;justify-content:flex-start;padding:12px 14px;">' +
+          '<strong>' + s.Manager + '</strong> — ' + s.Name + '</button>';
+      }).join("");
+      list.querySelectorAll("button").forEach(function(b){
+        b.addEventListener("click", function(){
+          MY_SERVICE_ID = Number(b.getAttribute("data-service"));
+          saveServiceId(MY_SERVICE_ID);
+          gate.style.display = "none";
+          document.getElementById("view-list").style.display = "block";
+          renderRows();
+        });
+      });
+    }
+    gate.style.display = "block";
+  }
+
+  document.getElementById("btn-switch-identity").addEventListener("click", function(){
+    clearSavedServiceId();
+    MY_SERVICE_ID = null;
+    showIdentityGate();
+  });
+
+  /* ---------------- Init ---------------- */
+
+  async function init(){
+    try{
+      await loadGristScript();
+      grist.ready({ requiredAccess: "full", name: "Espace manager" });
+      await loadAll();
+      document.getElementById("view-loading").style.display = "none";
+
+      var saved = loadSavedServiceId();
+      var savedServiceValid = saved !== null && SERVICES.some(function(s){ return s.id === saved && s.Manager; });
+      if (savedServiceValid){
+        MY_SERVICE_ID = saved;
+        document.getElementById("view-list").style.display = "block";
+        renderRows();
+      } else {
+        showIdentityGate();
+      }
+    }catch(err){
+      document.getElementById("view-loading").innerHTML =
+        '<strong>Connexion impossible</strong>Vérifiez que ce widget a bien été ouvert depuis une page Grist, avec l\'accès complet au document autorisé.';
+    }
+  }
+  init();
+
+})();
+</script>
+</body>
+</html>
