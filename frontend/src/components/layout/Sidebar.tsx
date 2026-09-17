@@ -22,6 +22,7 @@ export function Sidebar({ agent, activeScreen, remainingSteps, onNavigate, onSig
           href="https://lasuite.numerique.gouv.fr/"
           target="_blank"
           rel="noopener noreferrer"
+          title="La Suite numérique (nouvel onglet)"
           aria-label="La Suite numérique"
           style={{ display: "block" }}
         >

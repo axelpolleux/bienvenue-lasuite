@@ -15,18 +15,18 @@ import type { Agent, AgentProfile, HomeActivity } from "../types";
  * of view, sourced from Grist once the real integration is wired up.
  */
 export const SEED_PROFILE: AgentProfile = {
-  jobTitle: "Project officer",
-  department: "Digital Department",
-  organisation: "Interministerial Digital Directorate",
+  jobTitle: "Chargé de mission",
+  department: "Département Numérique",
+  organisation: "Direction interministérielle du numérique (DINUM)",
   phone: "+33 1 71 21 01 70",
 };
 
 /** Static demo tiles for the Home "first days" activity grid (not part of the checklist). */
 export const SEED_HOME_ACTIVITIES: HomeActivity[] = [
-  { id: "a1", icon: "breakfast", iconBg: "#fceec9", label: "Team breakfast", dueLabel: "D+1" },
-  { id: "a2", icon: "meeting", iconBg: "#e3e3fd", label: "Welcome meeting", dueLabel: "D+1" },
-  { id: "a3", icon: "equipment", iconBg: "#d7f5e3", label: "Receiving my IT equipment", dueLabel: "D+1" },
-  { id: "a4", icon: "tour", iconBg: "#fbe0f0", label: "Tour of my workplace", dueLabel: "D+1" },
+  { id: "a1", icon: "breakfast", iconBg: "#fceec9", label: "Petit-déjeuner d'équipe", dueLabel: "J+1" },
+  { id: "a2", icon: "meeting", iconBg: "#e3e3fd", label: "Point d'accueil et d'échange", dueLabel: "J+1" },
+  { id: "a3", icon: "equipment", iconBg: "#d7f5e3", label: "Remise du matériel informatique", dueLabel: "J+1" },
+  { id: "a4", icon: "tour", iconBg: "#fbe0f0", label: "Visite des locaux", dueLabel: "J+1" },
 ];
 
 /** Demo Dev Auth identities, mirroring `X-Dev-User-Email` (see `04-external-integrations.md`, section 2.2). */

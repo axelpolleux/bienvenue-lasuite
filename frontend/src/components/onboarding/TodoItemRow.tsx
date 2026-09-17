@@ -19,10 +19,10 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
   const cardModifier = todo.done ? " bn-todo--done" : todo.isLocked ? " bn-todo--locked" : "";
   const metaText = todo.done
     ? todo.doneAt
-      ? `Completed ${formatCompletionTimestamp(todo.doneAt)}`
-      : "Completed"
+      ? `Validé le ${formatCompletionTimestamp(todo.doneAt)}`
+      : "Validé"
     : todo.isLocked
-      ? "Waiting on an earlier step"
+      ? "En attente de l'étape précédente"
       : VALIDATION_HINTS[todo.validationType];
 
   return (
@@ -50,22 +50,22 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
           {todo.validationType === "API_CHECK" && (
             <button type="button" className="bn-button" aria-busy={busy} onClick={onVerify}>
               {busy && <span className="bn-spinner" aria-hidden="true" />}
-              {busy ? "Checking Fichiers…" : "Verify my Fichiers account"}
+              {busy ? "Vérification en cours…" : "Vérifier mon compte Fichiers"}
             </button>
           )}
           {todo.validationType === "MANUAL" && (
             <button type="button" className="bn-button" onClick={() => onToggle(true)}>
-              Mark as done
+              Marquer comme fait
             </button>
           )}
           {todo.validationType === "SIGNATURE" && (
             <button type="button" className="bn-button" onClick={onOpenSignature}>
-              Open my signature
+              Configurer ma signature
             </button>
           )}
           {todo.serviceLink && (
             <a href={todo.serviceLink} target="_blank" rel="noopener noreferrer" className="bn-button bn-button--link">
-              Open {todo.serviceName} ↗
+              {"Accéder à " + todo.serviceName + " ↗"}
             </a>
           )}
           {todo.docUrl && (
@@ -76,7 +76,7 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
               className="bn-button bn-button--link"
               style={{ marginLeft: "auto" }}
             >
-              Open documentation
+              Consulter la documentation
             </a>
           )}
         </div>
@@ -85,11 +85,11 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
       {todo.done && todo.validationType === "MANUAL" && (
         <div className="bn-todo__actions">
           <button type="button" className="bn-button bn-button--ghost" onClick={() => onToggle(false)}>
-            Mark as not done
+            Rouvrir l'étape
           </button>
           {todo.serviceLink && (
             <a href={todo.serviceLink} target="_blank" rel="noopener noreferrer" className="bn-button bn-button--link">
-              Open {todo.serviceName} ↗
+              {"Accéder à " + todo.serviceName + " ↗"}
             </a>
           )}
           {todo.docUrl && (
@@ -100,13 +100,13 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
               className="bn-button bn-button--link"
               style={{ marginLeft: "auto" }}
             >
-              Open documentation
+              Consulter la documentation
             </a>
           )}
         </div>
       )}
 
-      {todo.isLocked && <div className="bn-todo__locked-note">Locked — complete step {todo.order - 1} first.</div>}
+      {todo.isLocked && <div className="bn-todo__locked-note">{"Étape verrouillée — complétez d'abord l'étape " + (todo.order - 1) + "."}</div>}
     </div>
   );
 }

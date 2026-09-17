@@ -80,7 +80,7 @@ export function HomePage({ onboarding }: HomePageProps) {
                 <span className="bn-activity-card__icon" aria-hidden="true" style={{ background: activity.iconBg }}>
                   <ActivityIcon icon={activity.icon} />
                 </span>
-                <div className="bn-activity-card__label" style={{ fontSize: "large" }}>{activity.label}</div>
+                <div className="bn-activity-card__label">{activity.label}</div>
               </div>
             </div>
           ))}

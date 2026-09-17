@@ -1,17 +1,18 @@
 import type { Agent, AgentProfile, TodoWithStatus, ValidationType } from "../types";
+import { formatFrenchDateTime } from "./date";
 
 /** Human-readable explanation of how each validation type is resolved. */
 export const VALIDATION_HINTS: Record<ValidationType, string> = {
-  API_CHECK: "Verified automatically against the Fichiers service",
-  MANUAL: "Self-declared — mark it done when you have finished",
-  SIGNATURE: "Confirmed from the signature screen",
-  GRIST: "Synchronised from Grist",
+  API_CHECK: "Vérifié automatiquement auprès du service Fichiers",
+  MANUAL: "Déclaratif — cochez l'étape dès qu'elle est réalisée",
+  SIGNATURE: "Confirmé depuis l'écran de signature email",
+  GRIST: "Synchronisé automatiquement depuis Grist",
 };
 
 /** Short badge label shown next to each checklist step. */
 export const VALIDATION_TAGS: Record<ValidationType, string> = {
-  API_CHECK: "AUTO CHECK",
-  MANUAL: "SELF-DECLARED",
+  API_CHECK: "CONTRÔLE AUTO",
+  MANUAL: "DÉCLARATIF",
   SIGNATURE: "SIGNATURE",
   GRIST: "GRIST",
 };
@@ -27,13 +28,8 @@ export function buildSignatureText(agent: Agent, profile: AgentProfile): string 
   return [name, profile.jobTitle, profile.department, profile.organisation, "", agent.email, profile.phone].join("\n");
 }
 
-/** Formats an ISO timestamp as "16 Sep at 09:00", matching the reference prototype. */
 export function formatCompletionTimestamp(iso: string | null): string {
-  if (!iso) return "";
-  const date = new Date(iso);
-  const day = date.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
-  const time = date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-  return `${day} at ${time}`;
+  return formatFrenchDateTime(iso);
 }
 
 /** Derives up to two initials from a full name, for avatar badges. */
