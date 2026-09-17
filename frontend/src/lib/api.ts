@@ -187,6 +187,7 @@ function mapColleague(raw: RawColleague): Colleague {
     name,
     role: role || undefined,
     tchapLink: raw.tchap_link,
+    team: true,
   };
 }
 

@@ -69,8 +69,14 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
             </a>
           )}
           {todo.docUrl && (
-            <a href={todo.docUrl} target="_blank" rel="noopener noreferrer" className="bn-button bn-button--link">
-              Documentation ↗
+            <a
+              href={todo.docUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bn-button bn-button--link"
+              style={{ marginLeft: "auto" }}
+            >
+              Ouvrir la documentation
             </a>
           )}
         </div>
@@ -87,8 +93,14 @@ export function TodoItemRow({ todo, busy, onVerify, onToggle, onOpenSignature }:
             </a>
           )}
           {todo.docUrl && (
-            <a href={todo.docUrl} target="_blank" rel="noopener noreferrer" className="bn-button bn-button--link">
-              Documentation ↗
+            <a
+              href={todo.docUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bn-button bn-button--link"
+              style={{ marginLeft: "auto" }}
+            >
+              Ouvrir la documentation
             </a>
           )}
         </div>

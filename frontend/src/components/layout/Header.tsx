@@ -1,4 +1,4 @@
-import logo from "../../assets/bienvenue-logo.png";
+import logo from "../../assets/bienvenue-logo.webp";
 import { initialsFor } from "../../lib/onboarding";
 
 export interface HeaderProps {
