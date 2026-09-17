@@ -108,11 +108,22 @@ class TodoItem(models.Model):
         related_name="todo_items",
     )
     label = models.CharField(max_length=512, help_text="Task action label.")
+    description = models.TextField(
+        blank=True,
+        default="",
+        help_text="Detailed instructions or explanation.",
+    )
     service_link = models.URLField(
         max_length=1024,
         blank=True,
         null=True,
         help_text="Deep link to a relevant Suite service.",
+    )
+    doc_url = models.URLField(
+        max_length=1024,
+        blank=True,
+        null=True,
+        help_text="Documentation guide link.",
     )
     order = models.IntegerField(
         default=0,
