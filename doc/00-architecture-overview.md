@@ -39,7 +39,8 @@ flowchart TD
     end
 
     Manager -->|"Edits templates"| Grist
-    Grist -->|"Webhook on save"| Django
+    Manager -->|"Triggers sync"| Django
+    Django -->|"Pulls tables (REST)"| Grist
     Keycloak -->|"Identity (email)"| Django
     Django <-->|"CRUD / Persistence"| Postgres
     Frontend <-->|"API (JSON)"| Django
@@ -55,10 +56,10 @@ flowchart TD
 | Component | Technology | Primary Responsibilities |
 | :--- | :--- | :--- |
 | **Frontend** | React, TypeScript, Vite, `@gouvfr-lasuite/ui-components` (La Suite UI Kit) | Renders the sequential onboarding wizard for new agents and the progress overview for managers. Enforces strict RGAA accessibility using the official La Suite design system. |
-| **Backend (BFF)** | Django 6, Django REST Framework | Exposes REST endpoints, validates user existence in La Suite services, handles Grist webhooks, and orchestrates database transactions. |
+| **Backend (BFF)** | Django 6, Django REST Framework | Exposes REST endpoints, validates user existence in La Suite services, pulls Grist on manager request, and orchestrates database transactions. |
 | **Application DB** | PostgreSQL 16 | Relational persistence for agents, templates, todos, colleagues, documents, trainings, and agent completion statuses. |
-| **CMS / Template Editor** | Grist | No-code collaborative workspace where managers customize checklists, links, videos, and signatures without developer intervention. |
-| **Identity Provider** | Keycloak (OIDC) | Sovereign single sign-on issuing user identity (`email`, `name`, `roles`). Bypassed via a dev header during local testing. |
+| **CMS / Template Editor** | Grist | No-code collaborative workspace where HR/managers maintain the agent roster (`Members`), checklists, links, videos, and signatures without developer intervention. |
+| **Identity Provider** | Keycloak (OIDC) | Sovereign single sign-on issuing user identity (`email`, `name`). Manager/new_agent role is not a Keycloak claim — it lives on `Agent.role` in Postgres. Bypassed via a dev header during local testing. |
 | **Service Validator** | La Suite (Fichiers) / Mock | Target service queried by Django to confirm that an agent's account exists (HTTP 200). |
 
 ---
@@ -66,9 +67,9 @@ flowchart TD
 ## 4. Key Workflows
 
 ### 4.1 Template Authoring & Synchronization (Manager -> Grist -> Django)
-1. The Manager updates onboarding tasks, documents, or colleagues inside the official Grist document.
-2. On document save, Grist triggers an automated webhook (`POST /api/webhooks/grist/`) to the Django BFF.
-3. Django calls the Grist REST API to fetch the full template bundle and atomically upserts records into PostgreSQL.
+1. HR adds a new agent's email/name to the `Members` table in Grist; a manager picks their `Template`. Managers separately maintain onboarding tasks, documents, colleagues and trainings inside the same Grist document.
+2. The manager calls `POST /api/manager/sync-grist/` (no webhook — Grist never calls Django on its own).
+3. Django pulls every table via the Grist REST API and upserts records into PostgreSQL, including provisioning/updating `Agent` rows from `Members` — a new agent can have their template assigned before their very first login.
 
 ### 4.2 New Agent Onboarding & Sequential Unlocking
 1. The New Agent opens the React Mini App and authenticates via Keycloak (or Dev Auth).
@@ -99,6 +100,6 @@ flowchart TD
    - Critical identity/service steps (Fichiers) require server-side HTTP 200 verification.
    - Adoption and training tasks rely on self-declaration ("honor system").
 4. **Data Integrity & Non-Destructive Sync**: Grist synchronization executes atomic upserts matched on `grist_row_id`. Child `todo_items` are updated in-place to guarantee that foreign key references in `agent_todo_statuses` are preserved and never erased by cascade deletions.
-5. **Security Boundaries**: Webhooks require secret token verification (`GRIST_WEBHOOK_SECRET`). Development authentication bypass (`X-Dev-User-Email`) is strictly rejected and ignored in production (`DEBUG = False`).
+5. **Security Boundaries**: `POST /api/manager/sync-grist/` requires an authenticated manager (`IsAuthenticated` + `IsManager`) — there's no separate shared secret, since it's an authenticated app action rather than an inbound webhook from an untrusted caller. Development authentication bypass (`X-Dev-User-Email`) is strictly rejected and ignored in production (`DEBUG = False`).
 6. **RGAA & La Suite Design Standards Compliance**: The frontend must conform to official La Suite design system standards (`@gouvfr-lasuite/ui-components`, `@gouvfr-lasuite/ui-tokens`) and RGAA 4.1 / WCAG 2.1 AA accessibility guidelines.
 7. **Local Testability**: The core backend and database can boot and be fully exercised locally without external dependencies using `docker-compose.yml` and a built-in mock service.
