@@ -55,7 +55,7 @@ class VerifyTodoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        todo = get_object_or_404(TodoItem, id=pk, template=agent.assigned_template)
+        todo = get_object_or_404(agent.get_all_todos(), id=pk)
 
         # Automated check via service verifier
         exists, err_msg = check_user_fichiers(agent.email)
@@ -112,7 +112,7 @@ class ToggleTodoView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        todo = get_object_or_404(TodoItem, id=pk, template=agent.assigned_template)
+        todo = get_object_or_404(agent.get_all_todos(), id=pk)
         done_val = request.data.get("done", True) if isinstance(request.data, dict) else True
 
         status_rec, _ = AgentTodoStatus.objects.get_or_create(

@@ -4,10 +4,14 @@ Non-destructive: rows deleted in Grist are left as-is in Postgres rather
 than cascade-deleted, so existing agent_todo_statuses never dangle.
 """
 
+from datetime import datetime, timezone as dt_timezone
 import logging
+
+from django.db import transaction
 
 from src.onboarding.models import (
     Agent,
+    AgentTodoStatus,
     Colleague,
     Document,
     RoleChoices,
@@ -29,6 +33,7 @@ SYNCABLE_TABLES = [
     "Colleagues",
     "Documents",
     "Trainings",
+    "MemberChecklist",
 ]
 
 
@@ -201,6 +206,80 @@ def sync_trainings(records):
     return synced
 
 
+def _parse_grist_timestamp(val):
+    """Parse Grist timestamp (seconds since epoch) into timezone-aware datetime."""
+    if not val:
+        return None
+    try:
+        return datetime.fromtimestamp(float(val), tz=dt_timezone.utc)
+    except (ValueError, TypeError, OverflowError):
+        return None
+
+
+def sync_member_checklist(records):
+    """Sync custom manager-created tasks and member progress from MemberChecklist."""
+    grist_members = client.list_records_safe("Members")
+    member_by_id = {
+        rec["id"]: (rec["fields"].get("Email") or "").strip().lower()
+        for rec in grist_members
+        if (rec.get("fields", {}).get("Email") or "").strip()
+    }
+    agent_by_email = {
+        a.email.strip().lower(): a
+        for a in Agent.objects.select_related("assigned_template").all()
+    }
+
+    synced = 0
+    for record in records:
+        fields = record.get("fields", {})
+        member_row_id = fields.get("Member")
+        email = member_by_id.get(member_row_id)
+        agent = agent_by_email.get(email) if email else None
+        if not agent or not agent.assigned_template:
+            continue
+
+        custom_label = (fields.get("CustomLabel") or "").strip()
+        item_ref = fields.get("Item")
+        done = bool(fields.get("Done"))
+        done_at = _parse_grist_timestamp(fields.get("DoneAt"))
+
+        if not item_ref and custom_label:
+            todo, _ = TodoItem.objects.update_or_create(
+                grist_row_id=f"mc-{record['id']}",
+                defaults={
+                    "agent": agent,
+                    "template": agent.assigned_template,
+                    "label": custom_label,
+                    "description": (fields.get("CustomDescription") or "").strip(),
+                    "order": 100 + int(record["id"]),
+                    "validation_type": ValidationTypeChoices.MANUAL,
+                },
+            )
+            status_obj, _ = AgentTodoStatus.objects.get_or_create(
+                agent=agent,
+                todo_item=todo,
+            )
+            status_obj.done = done
+            status_obj.done_at = done_at if done else None
+            status_obj.save(update_fields=["done", "done_at"])
+            synced += 1
+        elif item_ref:
+            todo = TodoItem.objects.filter(grist_row_id=str(item_ref)).first()
+            if todo:
+                status_obj, created = AgentTodoStatus.objects.get_or_create(
+                    agent=agent,
+                    todo_item=todo,
+                    defaults={"done": done, "done_at": done_at},
+                )
+                if not created and status_obj.done != done:
+                    status_obj.done = done
+                    status_obj.done_at = done_at if done else None
+                    status_obj.save(update_fields=["done", "done_at"])
+                synced += 1
+
+    return synced
+
+
 _SYNC_FUNCTIONS = {
     "Templates": sync_templates,
     "Members": sync_members,
@@ -208,6 +287,7 @@ _SYNC_FUNCTIONS = {
     "Colleagues": sync_colleagues,
     "Documents": sync_documents,
     "Trainings": sync_trainings,
+    "MemberChecklist": sync_member_checklist,
 }
 
 
@@ -225,4 +305,127 @@ def sync_table(table_name):
 
 def sync_all():
     """Sync every table, Templates first so children can resolve their parent."""
-    return {table: sync_table(table) for table in SYNCABLE_TABLES}
+    with transaction.atomic():
+        return {table: sync_table(table) for table in SYNCABLE_TABLES}
+
+
+def _build_member_email_map(records):
+    """Build a mapping from normalized lowercased email to Grist member row id."""
+    return {
+        (rec["fields"].get("Email") or "").strip().lower(): rec["id"]
+        for rec in records
+        if (rec.get("fields", {}).get("Email") or "").strip()
+    }
+
+
+def _compute_checklist_deltas(agents, member_by_email, checklist_lookup, checklist_id_lookup=None):
+    """Compute MemberChecklist rows to update and create for all active agents."""
+    to_update, to_create = [], []
+    affected_members = set()
+    checklist_id_lookup = checklist_id_lookup or {}
+
+    for agent in agents:
+        member_id = member_by_email.get(agent.email.strip().lower())
+        if not member_id or not agent.assigned_template:
+            continue
+
+        status_map = {s.todo_item_id: s for s in agent.todo_statuses.all()}
+
+        for item in agent.get_all_todos():
+            if not item.grist_row_id:
+                continue
+
+            status = status_map.get(item.id)
+            done = bool(status and status.done)
+            done_at_str = (
+                status.done_at.date().isoformat()
+                if status and status.done and status.done_at
+                else None
+            )
+
+            if item.grist_row_id.startswith("mc-"):
+                try:
+                    mc_id = int(item.grist_row_id.replace("mc-", ""))
+                except (ValueError, TypeError):
+                    continue
+                existing = checklist_id_lookup.get(mc_id)
+                if existing:
+                    existing_fields = existing.get("fields", {})
+                    existing_done = bool(existing_fields.get("Done"))
+                    existing_done_at = existing_fields.get("DoneAt")
+                    if existing_done != done or (done and existing_done_at != done_at_str):
+                        to_update.append({
+                            "id": mc_id,
+                            "fields": {"Done": done, "DoneAt": done_at_str},
+                        })
+                        affected_members.add(member_id)
+                continue
+
+            try:
+                item_id = int(item.grist_row_id)
+            except (ValueError, TypeError):
+                continue
+
+            key = (member_id, item_id)
+            existing = checklist_lookup.get(key)
+
+            if existing:
+                existing_fields = existing.get("fields", {})
+                existing_done = bool(existing_fields.get("Done"))
+                existing_done_at = existing_fields.get("DoneAt")
+                if existing_done != done or (done and existing_done_at != done_at_str):
+                    to_update.append({
+                        "id": existing["id"],
+                        "fields": {"Done": done, "DoneAt": done_at_str},
+                    })
+                    affected_members.add(member_id)
+            else:
+                to_create.append({
+                    "Member": member_id,
+                    "Item": item_id,
+                    "Done": done,
+                    "DoneAt": done_at_str,
+                })
+                affected_members.add(member_id)
+
+    return to_update, to_create, affected_members
+
+
+def push_progress_to_grist():
+    """Push agent checklist progress to Grist MemberChecklist table."""
+    grist_members = client.list_records_safe("Members")
+    member_by_email = _build_member_email_map(grist_members)
+    if not member_by_email:
+        return {"updated": 0, "created": 0, "members_affected": 0}
+
+    existing_rows = client.list_records_safe("MemberChecklist")
+    checklist_lookup = {
+        (rec["fields"].get("Member"), rec["fields"].get("Item")): rec
+        for rec in existing_rows
+        if "fields" in rec
+    }
+    checklist_id_lookup = {
+        rec["id"]: rec for rec in existing_rows if "id" in rec
+    }
+    new_agents = (
+        Agent.objects.filter(role=RoleChoices.NEW_AGENT)
+        .select_related("assigned_template")
+        .prefetch_related(
+            "assigned_template__todo_items",
+            "custom_todo_items",
+            "todo_statuses",
+        )
+    )
+    to_update, to_create, affected = _compute_checklist_deltas(
+        new_agents, member_by_email, checklist_lookup, checklist_id_lookup
+    )
+    if to_update:
+        client.update_records("MemberChecklist", to_update)
+    if to_create:
+        client.create_records("MemberChecklist", to_create)
+
+    return {
+        "updated": len(to_update),
+        "created": len(to_create),
+        "members_affected": len(affected),
+    }
