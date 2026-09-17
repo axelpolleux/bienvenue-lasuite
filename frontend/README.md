@@ -39,29 +39,20 @@ and is left as a follow-up.
   or architecture-doc section it stands in for — so swapping the mock
   `checkFichiersAccount()` for a real `POST /api/todos/{id}/verify/` call
   later is a localized change.
-- **Real logo.** `assets/bienvenue-logo.png` (the uploaded wordmark)
+- **Real logo.** `assets/bienvenue-logo.webp` (the uploaded wordmark)
   replaces the hand-drawn Marianne triband as the primary brand mark in
   the header, sidebar and login screen; the triband can be reintroduced
   as a small compliance mark once the app integrates with the official
   `@gouvfr-lasuite/ui-components` header.
 
-## What this prototype still simulates
+## Backend integration
 
-Per `05-local-development.md`, the real backend exposes a mock Fichiers
-endpoint and Grist-backed templates. This standalone frontend has no
-Django BFF to call, so:
+The frontend connects directly to the Django REST Framework BFF via `lib/api.ts` and `@tanstack/react-query`:
 
-- Checklist data comes from `data/seed.ts` instead of
-  `GET /api/onboarding/me/`.
-- `verifyTodo()` in `useOnboarding.ts` always resolves successfully after
-  a short delay, standing in for `POST /api/todos/{id}/verify/` against
-  the Fichiers mock.
-- Progress persists to `localStorage`, standing in for PostgreSQL.
-
-Wiring this up to the real BFF means replacing `data/seed.ts` and the
-body of `useOnboarding.ts` with `TanStack Query` calls into
-`api/onboarding.ts`, without changing any page or component — they only
-consume the hook's return value.
+- Live onboarding data is fetched from `GET /api/onboarding/me/` and persisted in PostgreSQL.
+- Task verification triggers real automated checks via `POST /api/todos/{id}/verify/`.
+- Tasks can be toggled via `POST /api/todos/{id}/toggle/` and official signatures confirmed via `POST /api/signature/accept/`.
+- SSO authentication is powered by Keycloak (ProConnect) via session cookies with CSRF protection, with a fallback `X-Dev-User-Email` bypass for local development.
 
 ## Directory map
 
@@ -73,7 +64,8 @@ frontend/
     ├── main.tsx
     ├── App.tsx
     ├── assets/
-    │   └── bienvenue-logo.png
+    │   ├── bienvenue-logo.webp
+    │   └── tools/
     ├── styles/
     │   └── tokens.css
     ├── types/
@@ -81,12 +73,13 @@ frontend/
     ├── data/
     │   └── seed.ts
     ├── lib/
+    │   ├── api.ts
     │   ├── onboarding.ts
     │   └── navigation.ts
     ├── hooks/
     │   ├── useOnboarding.ts
-    │   ├── useLocalStorageState.ts
-    │   └── useAlert.ts
+    │   ├── useAlert.ts
+    │   └── useLocalStorageState.ts
     ├── components/
     │   ├── auth/LoginScreen.tsx
     │   ├── layout/Header.tsx
@@ -100,13 +93,14 @@ frontend/
     │       ├── ColleaguesList.tsx
     │       ├── DocumentsList.tsx
     │       ├── TrainingList.tsx
+    │       ├── SignatureInstructions.tsx
     │       └── SignatureBox.tsx
     └── pages/
         ├── HomePage.tsx
         ├── ChecklistPage.tsx
         ├── ResourcesPage.tsx
         ├── SignaturePage.tsx
-        └── ProfilePage.tsx
+        └── ContactPage.tsx
 ```
 
 ## Running it
