@@ -47,7 +47,9 @@ class Command(BaseCommand):
                 "template": template,
                 "order": 1,
                 "label": "Activer et vérifier mon espace de stockage Fichiers",
+                "description": "Fichiers is your personal and shared file storage space.",
                 "service_link": "https://fichiers.numerique.gouv.fr",
+                "doc_url": "https://docs.numerique.gouv.fr/docs/0b8b54fb-ef03-48fa-99b8-b88a289ceb8c/",
                 "validation_type": ValidationTypeChoices.API_CHECK,
             },
         )
@@ -58,7 +60,9 @@ class Command(BaseCommand):
                 "template": template,
                 "order": 2,
                 "label": "Se connecter à la messagerie instantanée Tchap",
+                "description": "Tchap is the secure instant messaging app used across the public administration.",
                 "service_link": "https://tchap.gouv.fr",
+                "doc_url": "https://docs.numerique.gouv.fr/docs/1aec951f-c8d8-49c0-ab9e-9a1aac629b3e/",
                 "validation_type": ValidationTypeChoices.MANUAL,
             },
         )
@@ -69,7 +73,9 @@ class Command(BaseCommand):
                 "template": template,
                 "order": 3,
                 "label": "Configurer mon modèle officiel de signature d'email",
+                "description": "Configure and validate your standardized administrative email signature.",
                 "service_link": None,
+                "doc_url": "https://docs.numerique.gouv.fr/docs/signature-guide/",
                 "validation_type": ValidationTypeChoices.SIGNATURE,
             },
         )
@@ -118,6 +124,16 @@ class Command(BaseCommand):
         )
 
         Agent.objects.update_or_create(
+            email="lea.fontaine@gouv.fr",
+            defaults={
+                "name": "Léa Fontaine",
+                "role": RoleChoices.NEW_AGENT,
+                "assigned_template": template,
+                "signature_accepted": False,
+            },
+        )
+
+        Agent.objects.update_or_create(
             email="camille.dupont@gouv.fr",
             defaults={
                 "name": "Camille Dupont",
@@ -127,12 +143,34 @@ class Command(BaseCommand):
             },
         )
 
-        # 7. Initial Statuses for Alex
-        for todo in [todo_fichiers, todo_tchap, todo_signature]:
-            AgentTodoStatus.objects.get_or_create(
-                agent=alex,
-                todo_item=todo,
-                defaults={"done": False},
-            )
+        # Keycloak realm demo users (from docker/keycloak/realm.json)
+        kc_agent, _ = Agent.objects.update_or_create(
+            email="agent@bienvenue.local",
+            defaults={
+                "name": "Alex Agent",
+                "role": RoleChoices.NEW_AGENT,
+                "assigned_template": template,
+                "signature_accepted": False,
+            },
+        )
+
+        Agent.objects.update_or_create(
+            email="manager@bienvenue.local",
+            defaults={
+                "name": "Morgane Manager",
+                "role": RoleChoices.MANAGER,
+                "assigned_template": template,
+                "signature_accepted": True,
+            },
+        )
+
+        # 7. Initial Statuses for Alex Martin and Keycloak Agent
+        for user_agent in [alex, kc_agent]:
+            for todo in [todo_fichiers, todo_tchap, todo_signature]:
+                AgentTodoStatus.objects.get_or_create(
+                    agent=user_agent,
+                    todo_item=todo,
+                    defaults={"done": False},
+                )
 
         self.stdout.write(self.style.SUCCESS("Demo data successfully seeded."))
