@@ -108,7 +108,8 @@ def sync_documents(records):
             defaults={
                 "template": template,
                 "title": fields.get("Title") or "",
-                "url": fields.get("Url") or "",
+                # Column is "URL" on the cloud doc, "Url" on our self-hosted one.
+                "url": fields.get("URL") or fields.get("Url") or "",
                 "format": fields.get("Format") or "pdf",
             },
         )
@@ -131,7 +132,8 @@ def sync_trainings(records):
             defaults={
                 "template": template,
                 "title": fields.get("Title") or "",
-                "video_url": fields.get("VideoUrl") or "",
+                # Column is "VideoURL" on the cloud doc, "VideoUrl" on our self-hosted one.
+                "video_url": fields.get("VideoURL") or fields.get("VideoUrl") or "",
                 "duration_minutes": fields.get("DurationMinutes") or None,
             },
         )
