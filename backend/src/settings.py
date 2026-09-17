@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import sys
 from pathlib import Path
 
 from corsheaders.defaults import default_headers
@@ -39,7 +40,12 @@ SECRET_KEY = env(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DJANGO_DEBUG", default=True)
 
-ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+ALLOWED_HOSTS = env.list(
+    "DJANGO_ALLOWED_HOSTS",
+    default=["localhost", "127.0.0.1", "backend", "testserver", "0.0.0.0", "*"],
+)
+USE_X_FORWARDED_HOST = True
+USE_X_FORWARDED_PORT = True
 
 
 # Application definition
@@ -76,6 +82,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS", default=["http://localhost:3000"]
 )
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "x-dev-user-email",
@@ -205,7 +212,29 @@ OIDC_OP_LOGOUT_URL_METHOD = "src.oidc.provider_logout"
 OIDC_STORE_ID_TOKEN = True
 
 LOGIN_URL = "oidc_authentication_init"
-LOGIN_REDIRECT_URL = "/whoami/"
-LOGIN_REDIRECT_URL_FAILURE = "/"
-LOGOUT_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = env("LOGIN_REDIRECT_URL", default="http://localhost:3000/")
+LOGIN_REDIRECT_URL_FAILURE = env(
+    "LOGIN_REDIRECT_URL_FAILURE", default="http://localhost:3000/"
+)
+LOGOUT_REDIRECT_URL = env("LOGOUT_REDIRECT_URL", default="http://localhost:3000/")
 ALLOW_LOGOUT_GET_METHOD = True
+
+# Silence expected 4xx HTTP logs from test suite to keep output clean
+if "test" in sys.argv:
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "handlers": {
+            "null": {
+                "class": "logging.NullHandler",
+            },
+        },
+        "loggers": {
+            "django.request": {
+                "handlers": ["null"],
+                "level": "CRITICAL",
+                "propagate": False,
+            },
+        },
+    }
+

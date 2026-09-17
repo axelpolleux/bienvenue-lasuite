@@ -1,6 +1,7 @@
+from django.contrib.auth.models import AnonymousUser, User
 from django.test import TestCase, RequestFactory, override_settings
 from rest_framework.exceptions import AuthenticationFailed
-from src.onboarding.models import Agent, RoleChoices
+from src.onboarding.models import Agent, RoleChoices, Template
 from src.onboarding.authentication import (
     DevOrKeycloakAuthentication,
     AuthenticatedAgentWrapper,
@@ -98,3 +99,43 @@ class DevOrKeycloakAuthenticationTest(TestCase):
         self.assertEqual(wrapper.name, "Super Manager")  # via __getattr__
         self.assertEqual(wrapper.role, RoleChoices.MANAGER)
         self.assertEqual(str(wrapper), str(manager))
+
+    def test_auth_with_session_user_existing_agent(self):
+        """Verify session authentication works for existing agent."""
+        user = User.objects.create_user(username="alex", email="alex.martin@gouv.fr")
+        request = self.factory.get("/")
+        request.user = user
+        user_auth = self.auth.authenticate(request)
+        self.assertIsNotNone(user_auth)
+        wrapper, token = user_auth
+        self.assertEqual(wrapper.agent.email, "alex.martin@gouv.fr")
+        self.assertEqual(request.agent, self.agent)
+
+    def test_auth_with_session_user_auto_provisions_and_assigns_template(self):
+        """Verify session authentication auto-provisions agent and assigns default template."""
+        template = Template.objects.create(
+            name="Default Onboarding",
+            grist_row_id="tpl-default-1",
+        )
+        user = User.objects.create_user(
+            username="new.sso",
+            email="new.sso@gouv.fr",
+            first_name="Jean",
+            last_name="Dupont",
+        )
+        request = self.factory.get("/")
+        request.user = user
+        user_auth = self.auth.authenticate(request)
+        self.assertIsNotNone(user_auth)
+        wrapper, token = user_auth
+        self.assertEqual(wrapper.agent.email, "new.sso@gouv.fr")
+        self.assertEqual(wrapper.agent.name, "Jean Dupont")
+        self.assertEqual(wrapper.agent.assigned_template, template)
+        self.assertEqual(request.agent, wrapper.agent)
+
+    def test_auth_with_anonymous_session_user_returns_none(self):
+        """Verify AnonymousUser on session does not authenticate."""
+        request = self.factory.get("/")
+        request.user = AnonymousUser()
+        result = self.auth.authenticate(request)
+        self.assertIsNone(result)
