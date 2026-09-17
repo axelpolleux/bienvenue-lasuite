@@ -49,10 +49,6 @@ services:
       # recognized domain, so pin a single fixed org instead ("Domain not
       # recognized: grist" otherwise).
       GRIST_SINGLE_ORG: docs-5
-      # Grist's webhook target validation only allows plain http:// for the
-      # literal hostname "localhost" — our webhook target is the Docker
-      # service name "backend", so it needs the wildcard. Local dev only.
-      ALLOWED_WEBHOOK_DOMAINS: "*"
     volumes:
       - grist_data:/persist
     ports:

@@ -1,7 +1,11 @@
 """URL configuration for src.onboarding endpoints."""
 
 from django.urls import path
-from src.onboarding.views.manager import AssignTemplateView, ManagerOverviewView
+from src.onboarding.views.manager import (
+    AssignTemplateView,
+    ManagerOverviewView,
+    SyncGristView,
+)
 from src.onboarding.views.mock_suite import mock_fichiers_user_view
 from src.onboarding.views.onboarding import (
     AcceptSignatureView,
@@ -9,7 +13,6 @@ from src.onboarding.views.onboarding import (
     ToggleTodoView,
     VerifyTodoView,
 )
-from src.onboarding.views.webhooks import GristWebhookView
 
 urlpatterns = [
     # Agent onboarding endpoints
@@ -24,13 +27,16 @@ urlpatterns = [
         AssignTemplateView.as_view(),
         name="agent-assign-template",
     ),
+    path(
+        "manager/sync-grist/",
+        SyncGristView.as_view(),
+        name="manager-sync-grist",
+    ),
     # Local mock testing endpoints
     path(
         "mock-suite/fichiers/users/<str:email>/",
         mock_fichiers_user_view,
         name="mock-fichiers-user",
     ),
-    # Grist webhook
-    path("webhooks/grist/", GristWebhookView.as_view(), name="grist-webhook"),
 ]
 

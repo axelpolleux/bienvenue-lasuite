@@ -9,8 +9,9 @@ from rest_framework.views import APIView
 from src.onboarding.models import Agent, RoleChoices, Template
 from src.onboarding.permissions import IsManager
 from src.onboarding.serializers import ManagerAgentOverviewSerializer
+from src.onboarding.services.grist_sync import sync_all
 
-__all__ = ["ManagerOverviewView", "AssignTemplateView"]
+__all__ = ["ManagerOverviewView", "AssignTemplateView", "SyncGristView"]
 
 
 class ManagerOverviewView(APIView):
@@ -80,5 +81,34 @@ class AssignTemplateView(APIView):
                 "template_name": template.name,
                 "message": "Template assigned successfully.",
             },
+            status=status.HTTP_200_OK,
+        )
+
+
+class SyncGristView(APIView):
+    """POST /api/manager/sync-grist/ pulling every Grist table into Postgres.
+
+    Triggered by the manager's "Save" button after editing templates in
+    Grist — no webhook, the manager explicitly asks for a resync.
+    """
+
+    permission_classes = [IsAuthenticated, IsManager]
+
+    def post(self, request) -> Response:
+        """Pull all 5 Grist tables and upsert by grist_row_id.
+
+        Returns 200 with a per-table synced-row count, or 502 if Grist
+        could not be reached.
+        """
+        try:
+            results = sync_all()
+        except Exception:
+            return Response(
+                {"error": "Could not reach Grist."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+
+        return Response(
+            {"message": "Sync complete.", "synced": results},
             status=status.HTTP_200_OK,
         )
