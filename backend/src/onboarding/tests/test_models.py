@@ -9,6 +9,8 @@ from src.onboarding.models import (
     Colleague,
     Document,
     Training,
+    Service,
+    AgentComment,
     RoleChoices,
     ValidationTypeChoices,
     DocumentFormatChoices,
@@ -144,3 +146,54 @@ class OnboardingModelsTest(TestCase):
         )
         self.assertEqual(training.duration_minutes, 10)
         self.assertEqual(str(training), "Tutoriel Tchap (10 min)")
+
+    def test_service_creation(self):
+        """Verify Service model creation and defaults."""
+        service = Service.objects.create(
+            name="Direction du Numérique",
+            initials="DN",
+            color="#000091",
+            manager_name="Camille Dupont",
+            manager_email="camille.dupont@gouv.fr",
+            default_template=self.template,
+            grist_row_id="grist-svc-1",
+        )
+        self.assertIsInstance(service.id, uuid.UUID)
+        self.assertEqual(str(service), "Direction du Numérique (DN)")
+        self.assertEqual(service.default_template, self.template)
+
+    def test_agent_profile_fields_and_service(self):
+        """Verify Agent extra profile fields, service link, and colleagues_to_meet."""
+        service = Service.objects.create(
+            name="Direction du Numérique",
+            initials="DN",
+            color="#000091",
+            grist_row_id="grist-svc-2",
+        )
+        colleague_agent = Agent.objects.create(
+            email="lea.fontaine@gouv.fr",
+            name="Léa Fontaine",
+            role=RoleChoices.NEW_AGENT,
+        )
+        self.agent.job_title = "Chargé de mission numérique"
+        self.agent.phone = "01 40 00 00 27"
+        self.agent.service = service
+        self.agent.save()
+        self.agent.colleagues_to_meet.add(colleague_agent)
+
+        self.agent.refresh_from_db()
+        self.assertEqual(self.agent.job_title, "Chargé de mission numérique")
+        self.assertEqual(self.agent.phone, "01 40 00 00 27")
+        self.assertEqual(self.agent.service, service)
+        self.assertIn(colleague_agent, self.agent.colleagues_to_meet.all())
+
+    def test_agent_comment_creation(self):
+        """Verify AgentComment model creation linked to an Agent."""
+        comment = AgentComment.objects.create(
+            agent=self.agent,
+            text="Excellente progression sur l'onboarding.",
+            grist_row_id="grist-comm-1",
+        )
+        self.assertIsInstance(comment.id, uuid.UUID)
+        self.assertEqual(comment.agent, self.agent)
+        self.assertIn("Excellente progression", str(comment))

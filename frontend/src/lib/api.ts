@@ -85,6 +85,16 @@ interface RawAgent {
   email: string;
   name: string;
   role?: string;
+  job_title?: string;
+  phone?: string;
+  arrival_date?: string | null;
+  departure_date?: string | null;
+  service_name?: string | null;
+  service_initials?: string | null;
+  service_color?: string | null;
+  service_logo_url?: string | null;
+  manager_name?: string | null;
+  manager_email?: string | null;
   signature_accepted?: boolean;
   created_at?: string;
   progress?: RawAgentProgress;
@@ -116,7 +126,9 @@ interface RawColleague {
   id: string;
   name: string;
   role?: string;
+  department?: string;
   tchap_link: string;
+  team?: boolean;
 }
 
 interface RawDocument {
@@ -183,30 +195,13 @@ function mapColleague(raw: RawColleague): Colleague {
     }
   }
 
-  let department = "Général";
-  if (role) {
-    const r = role.toLowerCase();
-    if (r.includes("it") || r.includes("technic") || r.includes("network") || r.includes("security")) {
-      department = "IT & Digital";
-    } else if (r.includes("team lead") || r.includes("manager") || r.includes("buddy") || r.includes("deputy")) {
-      department = "Management";
-    } else if (r.includes("hr") || r.includes("communication") || r.includes("recruitment")) {
-      department = "HR & Communications";
-    } else if (r.includes("facilities") || r.includes("data protection") || r.includes("office")) {
-      department = "Facilities & Data Protection";
-    }
-  }
-
-  const teamMembers = ["camille dupont", "isabelle delatour", "karim benali", "thomas nguyen", "julie lambert", "léa fontaine"];
-  const isTeam = teamMembers.includes(name.toLowerCase());
-
   return {
     id: raw.id,
     name,
     role: role || undefined,
-    department,
+    department: raw.department || "General",
     tchapLink: raw.tchap_link,
-    team: isTeam,
+    team: Boolean(raw.team),
   };
 }
 
@@ -234,6 +229,16 @@ function mapAgent(raw: RawAgent): Agent {
     name: raw.name,
     email: raw.email,
     role: raw.role,
+    jobTitle: raw.job_title,
+    phone: raw.phone,
+    arrivalDate: raw.arrival_date,
+    departureDate: raw.departure_date,
+    serviceName: raw.service_name,
+    serviceInitials: raw.service_initials,
+    serviceColor: raw.service_color,
+    serviceLogoUrl: raw.service_logo_url,
+    managerName: raw.manager_name,
+    managerEmail: raw.manager_email,
     signatureAccepted: raw.signature_accepted,
     progress: raw.progress
       ? {

@@ -3,16 +3,16 @@ import { formatFrenchDateTime } from "./date";
 
 /** Human-readable explanation of how each validation type is resolved. */
 export const VALIDATION_HINTS: Record<ValidationType, string> = {
-  API_CHECK: "Vérifié automatiquement auprès du service Fichiers",
-  MANUAL: "Déclaratif — cochez l'étape dès qu'elle est réalisée",
-  SIGNATURE: "Confirmé depuis l'écran de signature email",
-  GRIST: "Synchronisé automatiquement depuis Grist",
+  API_CHECK: "Automatically verified with the Files service",
+  MANUAL: "Self-declared — check off the step once completed",
+  SIGNATURE: "Confirmed from the email signature screen",
+  GRIST: "Automatically synchronized from Grist",
 };
 
 /** Short badge label shown next to each checklist step. */
 export const VALIDATION_TAGS: Record<ValidationType, string> = {
-  API_CHECK: "CONTRÔLE AUTO",
-  MANUAL: "DÉCLARATIF",
+  API_CHECK: "AUTO CHECK",
+  MANUAL: "DECLARATIVE",
   SIGNATURE: "SIGNATURE",
   GRIST: "GRIST",
 };

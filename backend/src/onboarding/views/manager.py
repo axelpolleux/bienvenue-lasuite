@@ -36,7 +36,8 @@ class ManagerOverviewView(APIView):
         """
         newcomers = (
             Agent.objects.filter(role=RoleChoices.NEW_AGENT)
-            .select_related("assigned_template")
+            .select_related("assigned_template", "service")
+            .prefetch_related("comments")
             .order_by("-created_at")
         )
         serializer = ManagerAgentOverviewSerializer(newcomers, many=True)

@@ -1,11 +1,11 @@
 /**
- * Date formatting helpers localized in French ('fr-FR') for Bienvenue à La Suite.
+ * Date formatting helpers for Bienvenue à La Suite.
  * Uses Europe/Paris timezone by default to align with official French civil service time.
  */
 
 const DEFAULT_TIMEZONE = "Europe/Paris";
 
-/** Formats an ISO timestamp as full French date, e.g. "17 septembre 2026". */
+/** Formats an ISO timestamp as full date, e.g. "17 September 2026". */
 export function formatFrenchDate(
   iso: string | null | undefined,
   options?: { timeZone?: string }
@@ -14,7 +14,7 @@ export function formatFrenchDate(
   const date = new Date(iso);
   if (isNaN(date.getTime())) return "";
 
-  return new Intl.DateTimeFormat("fr-FR", {
+  return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -22,7 +22,7 @@ export function formatFrenchDate(
   }).format(date);
 }
 
-/** Formats an ISO timestamp as short French date, e.g. "17 sept. 2026". */
+/** Formats an ISO timestamp as short date, e.g. "17 Sep 2026". */
 export function formatFrenchDateShort(
   iso: string | null | undefined,
   options?: { timeZone?: string }
@@ -31,7 +31,7 @@ export function formatFrenchDateShort(
   const date = new Date(iso);
   if (isNaN(date.getTime())) return "";
 
-  return new Intl.DateTimeFormat("fr-FR", {
+  return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -39,7 +39,7 @@ export function formatFrenchDateShort(
   }).format(date);
 }
 
-/** Formats an ISO timestamp as short date + time in French, e.g. "17 sept. à 15:30". */
+/** Formats an ISO timestamp as short date + time, e.g. "17 Sep at 15:30". */
 export function formatFrenchDateTime(
   iso: string | null | undefined,
   options?: { timeZone?: string }
@@ -49,17 +49,17 @@ export function formatFrenchDateTime(
   if (isNaN(date.getTime())) return "";
 
   const timeZone = options?.timeZone || DEFAULT_TIMEZONE;
-  const day = new Intl.DateTimeFormat("fr-FR", {
+  const day = new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "short",
     timeZone,
   }).format(date);
 
-  const time = new Intl.DateTimeFormat("fr-FR", {
+  const time = new Intl.DateTimeFormat("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone,
   }).format(date);
 
-  return `${day} à ${time}`;
+  return `${day} at ${time}`;
 }

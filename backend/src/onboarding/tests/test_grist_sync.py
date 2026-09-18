@@ -1,6 +1,11 @@
 from django.test import TestCase
-from src.onboarding.models import Agent, RoleChoices, Template
-from src.onboarding.services.grist_sync import sync_members
+from unittest.mock import patch
+from src.onboarding.models import Agent, RoleChoices, Template, Service, AgentComment
+from src.onboarding.services.grist_sync import (
+    sync_members,
+    sync_services,
+    sync_comments,
+)
 
 
 class SyncMembersTest(TestCase):
@@ -66,6 +71,48 @@ class SyncMembersTest(TestCase):
         synced = sync_members(records)
         self.assertEqual(synced, 0)
         self.assertFalse(Agent.objects.filter(name="No Email").exists())
+
+    def test_sync_members_with_profile_attributes_and_service(self):
+        service = Service.objects.create(
+            name="Direction du Numérique",
+            initials="DN",
+            grist_row_id="1",
+        )
+        records = [
+            {
+                "id": 10,
+                "fields": {
+                    "Email": "alex.martin@gouv.fr",
+                    "Name": "Alex Martin",
+                    "Role": "Chargé de mission numérique",
+                    "Phone": "01 40 00 00 27",
+                    "Service": 1,
+                    "ArrivalDate": 1788220800,
+                    "Template": 10,
+                    "ColleaguesToMeet": ["L", 11],
+                },
+            },
+            {
+                "id": 11,
+                "fields": {
+                    "Email": "lea.fontaine@gouv.fr",
+                    "Name": "Léa Fontaine",
+                    "Role": "Développeuse",
+                    "Service": 1,
+                    "Template": 10,
+                },
+            },
+        ]
+        sync_members(records)
+
+        alex = Agent.objects.get(email="alex.martin@gouv.fr")
+        self.assertEqual(alex.job_title, "Chargé de mission numérique")
+        self.assertEqual(alex.phone, "01 40 00 00 27")
+        self.assertEqual(alex.service, service)
+        self.assertIsNotNone(alex.arrival_date)
+
+        lea = Agent.objects.get(email="lea.fontaine@gouv.fr")
+        self.assertIn(lea, alex.colleagues_to_meet.all())
 
 
 class SyncTodoItemsTest(TestCase):
@@ -314,4 +361,69 @@ class PushProgressToGristTest(TestCase):
             self.assertEqual(results["members_affected"], 0)
             mock_client.update_records.assert_not_called()
             mock_client.create_records.assert_not_called()
+
+
+class SyncServicesTest(TestCase):
+    def setUp(self):
+        self.template = Template.objects.create(
+            name="Onboarding DN", grist_row_id="2"
+        )
+
+    def test_sync_services_creates_and_updates_service(self):
+        records = [
+            {
+                "id": 1,
+                "fields": {
+                    "Name": "Direction du Numérique",
+                    "Initials": "DN",
+                    "Color": "#000091",
+                    "LogoURL": "https://example.com/logo.png",
+                    "Manager": "Camille Dupont",
+                    "ManagerEmail": "camille.dupont@gouv.fr",
+                    "DefaultTemplate": 2,
+                },
+            }
+        ]
+        synced = sync_services(records)
+        self.assertEqual(synced, 1)
+
+        svc = Service.objects.get(grist_row_id="1")
+        self.assertEqual(svc.name, "Direction du Numérique")
+        self.assertEqual(svc.initials, "DN")
+        self.assertEqual(svc.color, "#000091")
+        self.assertEqual(svc.manager_name, "Camille Dupont")
+        self.assertEqual(svc.manager_email, "camille.dupont@gouv.fr")
+        self.assertEqual(svc.default_template, self.template)
+
+
+class SyncCommentsTest(TestCase):
+    def setUp(self):
+        self.agent = Agent.objects.create(
+            email="camille.dupont@gouv.fr",
+            name="Camille Dupont",
+        )
+
+    def test_sync_comments_associates_with_agent(self):
+        with patch("src.onboarding.services.grist_sync.client") as mock_client:
+            mock_client.list_records_safe.return_value = [
+                {"id": 1, "fields": {"Email": "camille.dupont@gouv.fr"}}
+            ]
+            records = [
+                {
+                    "id": 101,
+                    "fields": {
+                        "Member": 1,
+                        "Date": 1788307200,
+                        "Text": "Référente pour l'onboarding technique.",
+                    },
+                }
+            ]
+            synced = sync_comments(records)
+            self.assertEqual(synced, 1)
+
+            comment = AgentComment.objects.get(grist_row_id="101")
+            self.assertEqual(comment.agent, self.agent)
+            self.assertEqual(comment.text, "Référente pour l'onboarding technique.")
+            self.assertIsNotNone(comment.date)
+
 

@@ -55,6 +55,65 @@ class Template(models.Model):
         return f"{self.name} ({self.grist_row_id})"
 
 
+class Service(models.Model):
+    """Administrative service or department (e.g. Direction du Numérique)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255, help_text="Official service name.")
+    initials = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        help_text="Short initials (e.g. DN).",
+    )
+    color = models.CharField(
+        max_length=32,
+        blank=True,
+        default="#000091",
+        help_text="Hex color code.",
+    )
+    logo_url = models.CharField(
+        max_length=1024,
+        blank=True,
+        default="",
+        help_text="URL of service logo.",
+    )
+    manager_name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Service director/manager display name.",
+    )
+    manager_email = models.EmailField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Service manager contact email.",
+    )
+    default_template = models.ForeignKey(
+        Template,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="default_services",
+        help_text="Default onboarding template for this service.",
+    )
+    grist_row_id = models.CharField(
+        max_length=128,
+        unique=True,
+        help_text="Source row ID in Grist Services table.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "services"
+        ordering = ["name"]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.initials})" if self.initials else self.name
+
+
 class Agent(models.Model):
     """Civil servant user profile (newcomer or manager)."""
 
@@ -77,6 +136,43 @@ class Agent(models.Model):
         blank=True,
         related_name="agents",
         help_text="Assigned onboarding template.",
+    )
+    job_title = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Professional title/role (e.g. Chargé de mission numérique).",
+    )
+    phone = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        help_text="Direct phone number.",
+    )
+    arrival_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Arrival / start date in the administration.",
+    )
+    departure_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Departure / end date if applicable.",
+    )
+    service = models.ForeignKey(
+        Service,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="members",
+        help_text="Department / service this agent belongs to.",
+    )
+    colleagues_to_meet = models.ManyToManyField(
+        "self",
+        blank=True,
+        symmetrical=False,
+        related_name="meeting_agents",
+        help_text="Key colleagues / mentors this agent should meet during onboarding.",
     )
     signature_accepted = models.BooleanField(
         default=False,
@@ -289,3 +385,34 @@ class Training(models.Model):
     def __str__(self) -> str:
         duration_str = f" ({self.duration_minutes} min)" if self.duration_minutes else ""
         return f"{self.title}{duration_str}"
+
+
+class AgentComment(models.Model):
+    """Manager or HR notes regarding an agent's onboarding."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    agent = models.ForeignKey(
+        Agent,
+        on_delete=models.CASCADE,
+        related_name="comments",
+        help_text="Target agent for this note.",
+    )
+    date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Date the comment was recorded.",
+    )
+    text = models.TextField(help_text="Note or observation text.")
+    grist_row_id = models.CharField(
+        max_length=128,
+        unique=True,
+        help_text="Source row ID in Grist Comments table.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "agent_comments"
+        ordering = ["-date", "-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.agent.email}: {self.text[:40]}"

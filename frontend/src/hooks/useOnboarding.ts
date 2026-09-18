@@ -287,7 +287,6 @@ export function useOnboarding() {
 	const { alert, flash, dismiss } = useAlert();
 	const auth = useOnboardingAuth({ queryClient, dismissAlert: dismiss, flash });
 	const { activeDevEmail } = auth;
-	const [profile] = useState<AgentProfile>({ ...SEED_PROFILE });
 
 	const query = useQuery({
 		queryKey: ["onboarding", activeDevEmail],
@@ -300,6 +299,14 @@ export function useOnboarding() {
 		const meta = activeDevEmail ? DEV_AGENTS[activeDevEmail] : undefined;
 		return { name: meta?.name || "", email: activeDevEmail ?? "" };
 	}, [query.data?.agent, activeDevEmail]);
+
+	const profile: AgentProfile = useMemo(() => ({
+		name: agent.name,
+		jobTitle: agent.jobTitle || SEED_PROFILE.jobTitle,
+		department: agent.serviceName || SEED_PROFILE.department,
+		organisation: SEED_PROFILE.organisation,
+		phone: agent.phone || SEED_PROFILE.phone,
+	}), [agent]);
 
 	const template: Template | null = query.data?.template ?? null;
 	const todos: TodoWithStatus[] = useMemo(() => query.data?.todos ?? [], [query.data?.todos]);

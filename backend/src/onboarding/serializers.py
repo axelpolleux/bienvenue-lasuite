@@ -5,12 +5,38 @@ from rest_framework import serializers
 from src.onboarding.models import (
     Template,
     Agent,
+    AgentComment,
+    Service,
     TodoItem,
     AgentTodoStatus,
     Colleague,
     Document,
     Training,
 )
+
+
+class ServiceSerializer(serializers.ModelSerializer):
+    """Serializer for administrative department / service."""
+
+    class Meta:
+        model = Service
+        fields = [
+            "id",
+            "name",
+            "initials",
+            "color",
+            "logo_url",
+            "manager_name",
+            "manager_email",
+        ]
+
+
+class AgentCommentSerializer(serializers.ModelSerializer):
+    """Serializer for HR / Manager notes on an agent."""
+
+    class Meta:
+        model = AgentComment
+        fields = ["id", "date", "text"]
 
 
 class TemplateSerializer(serializers.ModelSerializer):
@@ -69,6 +95,12 @@ class AgentSerializer(serializers.ModelSerializer):
     """Serializer for Agent user profile with computed progress."""
 
     progress = serializers.SerializerMethodField()
+    service_name = serializers.CharField(source="service.name", read_only=True, default=None)
+    service_initials = serializers.CharField(source="service.initials", read_only=True, default=None)
+    service_color = serializers.CharField(source="service.color", read_only=True, default=None)
+    service_logo_url = serializers.CharField(source="service.logo_url", read_only=True, default=None)
+    manager_name = serializers.CharField(source="service.manager_name", read_only=True, default=None)
+    manager_email = serializers.CharField(source="service.manager_email", read_only=True, default=None)
 
     class Meta:
         model = Agent
@@ -76,6 +108,16 @@ class AgentSerializer(serializers.ModelSerializer):
             "id",
             "email",
             "name",
+            "job_title",
+            "phone",
+            "arrival_date",
+            "departure_date",
+            "service_name",
+            "service_initials",
+            "service_color",
+            "service_logo_url",
+            "manager_name",
+            "manager_email",
             "role",
             "signature_accepted",
             "created_at",
@@ -236,22 +278,73 @@ class OnboardingBundleSerializer(serializers.Serializer):
         ).data
 
     def get_colleagues(self, obj: Agent) -> List[Dict[str, Any]]:
-        """Serialize template colleagues."""
-        if not obj.assigned_template:
-            return []
-        return ColleagueSerializer(obj.assigned_template.colleagues.all(), many=True).data
+        """Serialize dynamic contacts (colleagues_to_meet + service peers) and template colleagues."""
+        colleagues_list = []
+        seen_ids = set()
+
+        for agent in obj.colleagues_to_meet.select_related("service").all():
+            if agent.id not in seen_ids:
+                seen_ids.add(agent.id)
+                colleagues_list.append({
+                    "id": str(agent.id),
+                    "name": agent.name,
+                    "role": agent.job_title or "Colleague",
+                    "department": agent.service.name if agent.service else "General",
+                    "tchap_link": f"https://www.tchap.gouv.fr/#/user/@{agent.email}:agent.finances.gouv.fr",
+                    "team": bool(obj.service and agent.service_id == obj.service_id),
+                })
+
+        if obj.service:
+            peers = obj.service.members.exclude(id=obj.id).select_related("service").all()
+            for peer in peers:
+                if peer.id not in seen_ids:
+                    seen_ids.add(peer.id)
+                    colleagues_list.append({
+                        "id": str(peer.id),
+                        "name": peer.name,
+                        "role": peer.job_title or "Colleague",
+                        "department": obj.service.name,
+                        "tchap_link": f"https://www.tchap.gouv.fr/#/user/@{peer.email}:agent.finances.gouv.fr",
+                        "team": True,
+                    })
+
+        tc_qs = obj.assigned_template.colleagues.all() if obj.assigned_template else Colleague.objects.none()
+        if not tc_qs.exists():
+            core_tpl = Template.objects.filter(grist_row_id="demo-template-core").first()
+            if core_tpl:
+                tc_qs = core_tpl.colleagues.all()
+
+        for tc in tc_qs:
+            if tc.id not in seen_ids:
+                seen_ids.add(tc.id)
+                colleagues_list.append({
+                    "id": str(tc.id),
+                    "name": tc.name,
+                    "role": "Contact",
+                    "department": "General",
+                    "tchap_link": tc.tchap_link,
+                    "team": False,
+                })
+
+        return colleagues_list
 
     def get_documents(self, obj: Agent) -> List[Dict[str, Any]]:
-        """Serialize template documents."""
-        if not obj.assigned_template:
-            return []
-        return DocumentSerializer(obj.assigned_template.documents.all(), many=True).data
+        """Serialize template documents with fallback to core documents."""
+        docs = obj.assigned_template.documents.all() if obj.assigned_template else Document.objects.none()
+        if not docs.exists():
+            core_tpl = Template.objects.filter(grist_row_id="demo-template-core").first()
+            if core_tpl:
+                docs = core_tpl.documents.all()
+        return DocumentSerializer(docs, many=True).data
 
     def get_trainings(self, obj: Agent) -> List[Dict[str, Any]]:
-        """Serialize template trainings."""
-        if not obj.assigned_template:
-            return []
-        return TrainingSerializer(obj.assigned_template.trainings.all(), many=True).data
+        """Serialize template trainings with fallback to core trainings."""
+        trainings = obj.assigned_template.trainings.all() if obj.assigned_template else Training.objects.none()
+        if not trainings.exists():
+            core_tpl = Template.objects.filter(grist_row_id="demo-template-core").first()
+            if core_tpl:
+                trainings = core_tpl.trainings.all()
+        return TrainingSerializer(trainings, many=True).data
 
 
 class ManagerAgentOverviewSerializer(serializers.ModelSerializer):
@@ -260,6 +353,8 @@ class ManagerAgentOverviewSerializer(serializers.ModelSerializer):
     template_name = serializers.SerializerMethodField()
     progress_percentage = serializers.SerializerMethodField()
     current_step = serializers.SerializerMethodField()
+    service_name = serializers.CharField(source="service.name", read_only=True, default=None)
+    comments = serializers.SerializerMethodField()
 
     class Meta:
         model = Agent
@@ -267,12 +362,21 @@ class ManagerAgentOverviewSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "email",
+            "job_title",
+            "phone",
+            "arrival_date",
+            "service_name",
             "template_name",
             "progress_percentage",
             "signature_accepted",
             "current_step",
+            "comments",
             "created_at",
         ]
+
+    def get_comments(self, obj: Agent) -> List[Dict[str, Any]]:
+        """Serialize comments attached to the agent."""
+        return AgentCommentSerializer(obj.comments.all(), many=True).data
 
     def get_template_name(self, obj: Agent) -> Optional[str]:
         """Return assigned template name."""
