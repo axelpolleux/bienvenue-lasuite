@@ -732,8 +732,9 @@
       btn.disabled = true;
       var checked = Array.prototype.slice.call(document.querySelectorAll("#colleagues-modal-content input[type=checkbox]:checked"))
         .map(function(input){ return Number(input.getAttribute("data-id")); });
+      var refList = checked.length ? ["L"].concat(checked) : null;
       try{
-        await grist.docApi.applyUserActions([["UpdateRecord","Members", memberId, { ColleaguesToMeet: checked }]]);
+        await grist.docApi.applyUserActions([["UpdateRecord","Members", memberId, { ColleaguesToMeet: refList }]]);
         await loadAll();
         renderDetail(memberId);
         closeColleaguesModal();
@@ -813,14 +814,6 @@
       if (label) label.textContent = "Synchronizing...";
 
       try {
-        var pushRes = await fetch("http://localhost:8000/api/manager/sync-grist/push/", {
-          method: "POST",
-          headers: { "X-Dev-User-Email": "manager@bienvenue.local" }
-        });
-        if (!pushRes.ok) {
-          throw new Error("Push sync failed with status " + pushRes.status);
-        }
-
         var pullRes = await fetch("http://localhost:8000/api/manager/sync-grist/pull/", {
           method: "POST",
           headers: { "X-Dev-User-Email": "manager@bienvenue.local" }

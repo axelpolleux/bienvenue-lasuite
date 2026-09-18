@@ -371,14 +371,6 @@
       if (label) label.textContent = "Synchronizing...";
 
       try {
-        var pushRes = await fetch("http://localhost:8000/api/manager/sync-grist/push/", {
-          method: "POST",
-          headers: { "X-Dev-User-Email": "manager@bienvenue.local" }
-        });
-        if (!pushRes.ok) {
-          throw new Error("Push sync failed with status " + pushRes.status);
-        }
-
         var pullRes = await fetch("http://localhost:8000/api/manager/sync-grist/pull/", {
           method: "POST",
           headers: { "X-Dev-User-Email": "manager@bienvenue.local" }

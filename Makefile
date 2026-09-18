@@ -35,6 +35,7 @@ help:
 	@echo ""
 
 up:
+	@chmod -R 777 grist-host/persist 2>/dev/null || true
 	docker compose up -d --build
 
 start: up
@@ -45,6 +46,7 @@ down:
 stop: down
 
 restart:
+	@chmod -R 777 grist-host/persist 2>/dev/null || true
 	docker compose restart
 
 ps:
