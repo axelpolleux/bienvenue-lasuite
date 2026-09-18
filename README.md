@@ -2,7 +2,12 @@
 
 > Modular onboarding companion for [La Suite Numérique](https://lasuite.numerique.gouv.fr) (DINUM), powered by Grist & ProConnect.
 
-![Status: Concept](https://img.shields.io/badge/status-hackathon-blue.svg) ![Accessibility: RGAA](https://img.shields.io/badge/accessibility-RGAA%20AA-blueviolet.svg) ![PostgreSQL](https://img.shields.io/badge/database-PostgreSQL-336791.svg) ![Grist](https://img.shields.io/badge/templates-Grist-orange.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/axelpolleux/bienvenue-lasuite/actions/workflows/ci.yml/badge.svg)](https://github.com/axelpolleux/bienvenue-lasuite/actions/workflows/ci.yml)
+![Status: Concept](https://img.shields.io/badge/status-hackathon-blue.svg)
+![Accessibility: RGAA](https://img.shields.io/badge/accessibility-RGAA%20AA-blueviolet.svg)
+![PostgreSQL](https://img.shields.io/badge/database-PostgreSQL-336791.svg)
+![Grist](https://img.shields.io/badge/templates-Grist-orange.svg)
 
 ## Overview
 
@@ -91,4 +96,16 @@ Comprehensive specifications are in [`doc/`](doc/README.md):
 
 ## Configuration
 
-Pre-configured out of the box with Docker. To customize: `cp .env.example .env`.
+Pre-configured out of the box with Docker Compose. To customize your local or production environment, copy the template and edit values:
+```bash
+cp .env.example .env
+```
+
+## Open Source & Community
+
+Bienvenue à La Suite is an open-source initiative built for the French public administration. We welcome feedback, issue reports, and pull requests from the community:
+
+- **License**: Released under the [MIT License](LICENSE).
+- **Contributing**: Check out our [Contribution Guidelines](CONTRIBUTING.md) before submitting code.
+- **Security Policy**: For responsible vulnerability reporting, see [SECURITY.md](SECURITY.md).
+- **Code of Conduct**: We adhere to the [Contributor Covenant v2.1](CODE_OF_CONDUCT.md).
