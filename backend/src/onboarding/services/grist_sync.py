@@ -120,14 +120,14 @@ def _resolve_colleagues_to_meet(records, agent_by_grist_id):
         if not agent:
             continue
         meet_refs = record.get("fields", {}).get("ColleaguesToMeet")
+        colleague_agents = []
         if isinstance(meet_refs, list):
             colleague_agents = [
                 agent_by_grist_id[ref]
                 for ref in meet_refs
                 if isinstance(ref, int) and ref in agent_by_grist_id and agent_by_grist_id[ref] != agent
             ]
-            if colleague_agents:
-                agent.colleagues_to_meet.set(colleague_agents)
+        agent.colleagues_to_meet.set(colleague_agents)
 
 
 def sync_members(records):
