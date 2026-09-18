@@ -23,6 +23,16 @@ export interface Agent {
   /** Institutional email — the primary identity key across every service. */
   email: string;
   role?: string;
+  jobTitle?: string;
+  phone?: string;
+  arrivalDate?: string | null;
+  departureDate?: string | null;
+  serviceName?: string | null;
+  serviceInitials?: string | null;
+  serviceColor?: string | null;
+  serviceLogoUrl?: string | null;
+  managerName?: string | null;
+  managerEmail?: string | null;
   signatureAccepted?: boolean;
   progress?: AgentProgress;
   createdAt?: string;
