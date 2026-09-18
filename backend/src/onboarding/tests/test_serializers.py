@@ -7,6 +7,8 @@ from src.onboarding.models import (
     Colleague,
     Document,
     Training,
+    Service,
+    AgentComment,
     RoleChoices,
     ValidationTypeChoices,
     DocumentFormatChoices,
@@ -251,3 +253,73 @@ class SerializersTest(TestCase):
         completed_data = ManagerAgentOverviewSerializer(self.agent).data
         self.assertEqual(completed_data["progress_percentage"], 100)
         self.assertEqual(completed_data["current_step"], "All tasks completed")
+
+    def test_agent_serializer_with_service_and_profile(self):
+        """Verify AgentSerializer exposes rich profile and service metadata."""
+        service = Service.objects.create(
+            name="Direction du Numérique",
+            initials="DN",
+            color="#000091",
+            grist_row_id="grist-svc-ser-1",
+        )
+        self.agent.job_title = "Chargé de mission numérique"
+        self.agent.phone = "01 40 00 00 27"
+        self.agent.service = service
+        self.agent.save()
+
+        data = AgentSerializer(self.agent).data
+        self.assertEqual(data["job_title"], "Chargé de mission numérique")
+        self.assertEqual(data["phone"], "01 40 00 00 27")
+        self.assertEqual(data["service_name"], "Direction du Numérique")
+        self.assertEqual(data["service_initials"], "DN")
+        self.assertEqual(data["service_color"], "#000091")
+
+    def test_onboarding_bundle_serializer_with_dynamic_colleagues(self):
+        """Verify OnboardingBundleSerializer resolves colleagues_to_meet and service peers."""
+        service = Service.objects.create(
+            name="Direction du Numérique",
+            initials="DN",
+            grist_row_id="grist-svc-ser-2",
+        )
+        self.agent.service = service
+        self.agent.save()
+
+        peer = Agent.objects.create(
+            email="lea.fontaine@gouv.fr",
+            name="Léa Fontaine",
+            job_title="Développeuse",
+            service=service,
+        )
+        mentor = Agent.objects.create(
+            email="mentor@gouv.fr",
+            name="Mentor IT",
+            job_title="Référent",
+        )
+        self.agent.colleagues_to_meet.add(mentor)
+
+        bundle = OnboardingBundleSerializer(self.agent, context={"agent": self.agent}).data
+        colleague_names = [c["name"] for c in bundle["colleagues"]]
+        self.assertIn("Léa Fontaine", colleague_names)
+        self.assertIn("Mentor IT", colleague_names)
+
+    def test_manager_overview_with_service_and_comments(self):
+        """Verify ManagerAgentOverviewSerializer exposes service name and comments."""
+        service = Service.objects.create(
+            name="Direction du Numérique",
+            grist_row_id="grist-svc-ser-3",
+        )
+        self.agent.service = service
+        self.agent.job_title = "Chargé de mission"
+        self.agent.save()
+        AgentComment.objects.create(
+            agent=self.agent,
+            text="Profil très autonome sur les outils.",
+            grist_row_id="comm-test-1",
+        )
+
+        data = ManagerAgentOverviewSerializer(self.agent).data
+        self.assertEqual(data["service_name"], "Direction du Numérique")
+        self.assertEqual(data["job_title"], "Chargé de mission")
+        self.assertEqual(len(data["comments"]), 1)
+        self.assertEqual(data["comments"][0]["text"], "Profil très autonome sur les outils.")
+
